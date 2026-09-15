@@ -1,5 +1,6 @@
 import { validarDatosPareja, validarDatosCategoria, validarDatosModificarPareja, validarEvaluacion } from "./validaciones.js";
-import { validarIDPareja, validarDatosEstilo, validarIDCategoria, validarIDEstilo, validarDatosUsuario, validarDatosEliminarUsuario, validarDatosParejaResultados  } from "./validaciones.js";
+import { validarIDPareja, validarDatosEstilo, validarIDCategoria, validarIDEstilo, validarDatosUsuario, validarDatosEliminarUsuario } from "./validaciones.js";
+import { inicializarBusquedaEvaluacion } from "./busquedaEvaluacion.js";
 import { mostrarResultados } from "./domHelpers.js";
 
 // Detectar si la ventana es emergente (por query string)
@@ -560,7 +561,7 @@ function inicializarResultados() {
     //  Vincular evento del botón de búsqueda en evaluación
     const btnBuscarPareja = document.getElementById("buscar-pareja");
     if (btnBuscarPareja) {
-        btnBuscarPareja.addEventListener("click", buscarParejaParaEvaluacion);
+        inicializarBusquedaEvaluacion();
     } else {
         console.error("No se encontró el botón con la ID 'buscar-pareja'.");
     }
@@ -590,30 +591,6 @@ if (btnGenerarPDFResultados) {
     });
 }
 
-    //  Asegurar que la sección de evaluación reciba los datos correctamente
-    async function mostrarDatosPareja(id) {
-        try {
-            const response = await window.api.buscarParejaPorID(id);
-
-            if (response.success && response.data.length > 0) {
-                console.log("Resultados obtenidos:", response.data);
-
-                const parejaData = response.data[0];
-
-                // Asignar los valores a los elementos HTML
-                actualizarElemento("pareja-id-info", parejaData.nParejaID);
-                actualizarElemento("participante1", parejaData.participante1);
-                actualizarElemento("participante2", parejaData.participante2);
-                actualizarElemento("categoria", parejaData.categoriaNombre);
-                actualizarElemento("estilo", parejaData.estiloNombre);
-            } else {
-                alert(`No se encontró información para el ID "${id}".`);
-            }
-        } catch (err) {
-            console.error("Error al obtener datos de la pareja:", err);
-            alert(`Error: ${err.message}`);
-        }
-    }
 
     //  Función para actualizar los elementos evitando errores
     function actualizarElemento(id, valor) {
@@ -804,36 +781,6 @@ async function buscarPareja() {
     }
 }
 
-async function buscarParejaParaEvaluacion() {
-    try {
-        console.log("Ejecutando buscarParejaParaEvaluacion...");
-
-        const id = parseInt(document.querySelector("#pareja-id")?.value.trim(), 10);
-        validarIDPareja(id); // Validar el ID antes de buscar
-
-        const response = await window.api.buscarTodasLasParejas();
-
-        if (response.success && response.data.length > 0) {
-            console.log("Resultados obtenidos:", response.data);
-
-            const parejaData = response.data.find(p => Number(p.nParejaID) === id);
-            const datosValidados = validarDatosParejaResultados(parejaData); // Usar validación externa
-
-            console.log("Estructura de parejaData:", datosValidados);
-
-            document.getElementById("pareja-id-info").textContent = datosValidados.nParejaID;
-            document.getElementById("participante1").textContent = datosValidados.nombreParticipante1;
-            document.getElementById("participante2").textContent = datosValidados.nombreParticipante2;
-            document.getElementById("categoria").textContent = datosValidados.categoriaNombre;
-            document.getElementById("estilo").textContent = datosValidados.estiloNombre;
-        } else {
-            alert(`No se encontró información para el ID "${id}".`);
-        }
-    } catch (err) {
-        console.error("Error al buscar pareja para evaluación:", err);
-        alert(`Error: ${err.message}`);
-    }
-}
 
 
 async function buscarCategoria() {
@@ -1235,26 +1182,6 @@ async function eliminarPareja() {
 //         alert("Error interno al generar el PDF.");
 //     }
 // });
-
-document.getElementById("btnGuardarConfigBaseDatos")?.addEventListener("click", async () => {
-    const nuevaConfig = {
-        host: document.getElementById("HostBaseDatos").value,
-        user: document.getElementById("UsuarioBaseDatos").value,
-        password: document.getElementById("ContrasenaBaseDatos").value,
-        database: document.getElementById("database").value
-    };
-
-    console.log("Enviando nueva configuración:", nuevaConfig);
-
-    const response = await window.api.guardarConfiguracion(nuevaConfig);
-
-    if (response.success) {
-        alert("Configuración guardada correctamente. Reinicia la app para aplicar cambios.");
-    } else {
-        alert(`Error al guardar configuración: ${response.error}`);
-    }
-});
-
 
 // ipcRenderer.on("generar-pdf", async () => {
 //     try {

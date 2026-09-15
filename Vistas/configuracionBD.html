@@ -1,22 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Configuración de conexión al Servidor.</title>
-    <script type="module" type="module" src="../Public/js/render.js"></script>
+    <title>Configurar conexión</title>
+    <script type="module" src="../Public/js/configuracionBD.js"></script>
     <link rel="stylesheet" href="../Public/css/stylesconfigBD.css">
 </head>
 <body>
-        <h2>Configuración de la Base de Datos</h2>
-        <label>Servidor IP:</label>
-        <input id="HostBaseDatos" type="text"><br>
-        <label>Usuario:</label>
-        <input id="UsuarioBaseDatos" type="text"><br>
-        <label>Contraseña:</label>
-        <input id="ContrasenaBaseDatos" type="password"><br>
-        <label>Base de Datos:</label>
-        <input id="database" type="text"><br>
-        <button id="btnGuardarConfigBaseDatos">Guardar Configuración</button>
+    <h2>Conexión con la base de datos</h2>
+    <p>Completa los datos de MySQL. Comprobaremos la conexión antes de guardarlos.</p>
+    <form id="formConfiguracion">
+        <fieldset id="camposConfiguracion" disabled>
+            <label for="HostBaseDatos">Servidor</label>
+            <input id="HostBaseDatos" type="text" value="127.0.0.1" required>
+            <label for="PuertoBaseDatos">Puerto</label>
+            <input id="PuertoBaseDatos" type="number" value="3306" min="1" max="65535" required>
+            <label for="UsuarioBaseDatos">Usuario de MySQL</label>
+            <input id="UsuarioBaseDatos" type="text" required autocomplete="off">
+            <label for="ContrasenaBaseDatos">Contraseña</label>
+            <input id="ContrasenaBaseDatos" type="password" autocomplete="off" aria-describedby="ayudaContrasena">
+            <p id="ayudaContrasena">Vuelve a escribirla al cambiar la conexión. Déjala vacía solo si tu usuario no tiene contraseña.</p>
+            <label for="database">Nombre de la base de datos</label>
+            <input id="database" type="text" required>
+            <button id="btnGuardarConfigBaseDatos" type="submit">Comprobar y guardar</button>
+        </fieldset>
+    </form>
+    <p id="estadoConfiguracion" role="status" aria-live="polite">Cargando configuración…</p>
+    <button id="btnContinuarConfiguracion" type="button" hidden>Continuar al inicio de sesión</button>
 </body>
 </html>

@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld("api", {
     getUserRole: () => ipcRenderer.invoke("get-role"), // Exponer el canal "get-role"
     registrarPareja: (datos) => ipcRenderer.invoke("registrar-pareja", datos),
     buscarParejaPorID: (id) => ipcRenderer.invoke("buscar-pareja-por-id", id),
+    buscarParejaParaEvaluacion: (id) => ipcRenderer.invoke("buscar-pareja-para-evaluacion", id),
     buscarTodasLasParejas: () => ipcRenderer.invoke("buscar-todas-las-parejas"),
     // actualizarPareja: (datos) => ipcRenderer.invoke("actualizar-pareja", datos),
     // actualizarPareja: (datos) => {
@@ -42,7 +43,9 @@ contextBridge.exposeInMainWorld("api", {
     //Eventos para la evaluaciones
     registrarEvaluacion: (datos) => ipcRenderer.invoke("registrar-evaluacion", datos),
     obtenerEvaluacionesPorPareja: (nParejaID) => ipcRenderer.invoke("obtener-evaluaciones-por-pareja", nParejaID),
+    obtenerConfiguracion: () => ipcRenderer.invoke("obtener-configuracion"),
     guardarConfiguracion: (config) => ipcRenderer.invoke("guardar-configuracion", config),
+    continuarConfiguracion: () => ipcRenderer.invoke("continuar-configuracion"),
     // DAMOS PERMISO A getUsuarioID para guardar automaticamente los ID de los jueces en el sistema
     guardarImagen: (origen, destino) => ipcRenderer.invoke("guardarImagen", origen, destino),
     guardarImagenBuffer: (buffer, destino) => ipcRenderer.invoke("guardarImagenBuffer", buffer, destino),

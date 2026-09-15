@@ -1,22 +1,34 @@
-const { app } = require("electron");
-const { guardarConfiguracion } = require("../Modelos/configModel");
+const { guardarConfiguracion, cargarConfiguracion, normalizarConfiguracion, configuracionInicial } = require("../Modelos/configModel");
+const { probarConexion } = require("../db");
 
-async function handleGuardarConfiguracion(event, nuevaConfig) {
+function handleObtenerConfiguracion() {
     try {
-        console.log("Guardando nueva configuración...");
-        const resultado = guardarConfiguracion(nuevaConfig);
-
-        if (resultado.success) {
-            console.log("✅ Configuración guardada. Reiniciando la aplicación...");
-            app.relaunch(); // Reinicia la app con la nueva configuración
-            app.exit(); // Cierra la instancia actual antes de reiniciar
-        }
-
-        return resultado;
+        const config = cargarConfiguracion();
+        // La contraseña guardada nunca se envía al renderizador.
+        return { success: true, data: {
+            host: typeof config?.host === "string" ? config.host : configuracionInicial.host,
+            port: config?.port ?? 3306,
+            user: typeof config?.user === "string" ? config.user : "",
+            database: typeof config?.database === "string" ? config.database : ""
+        } };
     } catch (error) {
-        console.error("Error en el controlador de configuración:", error);
-        return { success: false, error: error.message };
+        return { success: false, error: error.message, data: { ...configuracionInicial, password: undefined } };
     }
 }
 
-module.exports = { handleGuardarConfiguracion };
+let guardando = false;
+async function handleGuardarConfiguracion(event, nuevaConfig) {
+    if (guardando) return { success: false, error: "Ya se está comprobando una conexión. Espera a que termine." };
+    guardando = true;
+    try {
+        const config = normalizarConfiguracion(nuevaConfig);
+        await probarConexion(config);
+        return guardarConfiguracion(config);
+    } catch (error) {
+        return { success: false, error: error.message };
+    } finally {
+        guardando = false;
+    }
+}
+
+module.exports = { handleGuardarConfiguracion, handleObtenerConfiguracion };

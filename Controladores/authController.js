@@ -1,7 +1,5 @@
 const { queryDatabase } = require("../db");
-const fs = require("fs");
-const path = require("path");
-const { guardarConfiguracion, configPath } = require("../Modelos/configModel");
+const { guardarSesion } = require("../Modelos/sesionModel");
 
 async function handleLogin(event, credentials, createMainWindow) {
     const { username, password } = credentials;
@@ -22,10 +20,10 @@ async function handleLogin(event, credentials, createMainWindow) {
             console.log("Enviando evento set-role con rol:", userRole);
 
             // Cierra la ventana de login y abre la ventana principal
-            if (global.loginWindow) {
+            createMainWindow();
+            if (global.loginWindow && !global.loginWindow.isDestroyed()) {
                 global.loginWindow.close();
             }
-            createMainWindow();
 
             // Enviar el rol al renderizador
             global.mainWindow.webContents.once("did-finish-load", () => {
@@ -42,42 +40,5 @@ async function handleLogin(event, credentials, createMainWindow) {
         return { success: false, error: "Error interno al validar el login" };
     }
 }
-
-// function guardarSesion(userID, userRole) {
-//     const configPath = path.join(__dirname, "..", "config.json");
-//     let config = {};
-//     if (fs.existsSync(configPath)) {
-//         config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
-//     }
-//     config.user = userID;
-//     config.userRole = userRole;
-//     fs.writeFileSync(configPath, JSON.stringify(config, null, 2), "utf-8");
-// }
-
-function guardarSesion(userID, userRole) {
-    try {
-        console.log("Guardando sesión en:", configPath);
-        let config = {};
-
-        // Si el archivo existe, cargarlo; si no, crear estructura vacía
-        if (fs.existsSync(configPath)) {
-            config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
-        } else {
-            console.warn("Archivo de configuración no encontrado, creando...");
-            config = {};
-        }
-
-        // Guardar usuario y rol
-        config.user = userID;
-        config.userRole = userRole;
-
-        // Escribir en `config.json` asegurando que la ruta es correcta
-        fs.writeFileSync(configPath, JSON.stringify(config, null, 2), "utf-8");
-        console.log("Sesión guardada correctamente en:", configPath);
-    } catch (error) {
-        console.error("Error al guardar la sesión:", error);
-    }
-}
-
 
 module.exports = { handleLogin, guardarSesion};

@@ -1,4 +1,4 @@
-const { registrarPareja, buscarParejaPorID, buscarTodasLasParejas, actualizarPareja, eliminarPareja, actualizarParejaCompleta } = require("../Modelos/parejaModel");
+const { registrarPareja, buscarParejaPorID, buscarParejaParaEvaluacion, buscarTodasLasParejas, eliminarPareja, actualizarParejaCompleta } = require("../Modelos/parejaModel");
 
 // Controlador para registrar una pareja
 async function handleRegistrarPareja(event, datos) {
@@ -22,6 +22,27 @@ async function handleBuscarParejaPorID(event, id) {
     } catch (err) {
         console.error("Error en el controlador de búsqueda de pareja:", err);
         return { success: false, error: err.message };
+    }
+}
+
+// La validación se aplica también al recibir la solicitud desde IPC.
+async function handleBuscarParejaParaEvaluacion(event, id) {
+    const textoID = typeof id === "string" ? id.trim() : typeof id === "number" ? String(id) : "";
+    const numeroID = Number(textoID);
+    if (!["string", "number"].includes(typeof id) || !/^\d+$/.test(textoID) ||
+        !Number.isSafeInteger(numeroID) || numeroID <= 0) {
+        return { success: false, code: "INVALID_ID", message: "Ingresa un ID de pareja entero y positivo." };
+    }
+
+    try {
+        const resultados = await buscarParejaParaEvaluacion(numeroID);
+        if (resultados.length === 0) {
+            return { success: false, code: "NOT_FOUND", message: "No se encontró ninguna pareja con ese ID." };
+        }
+        return { success: true, data: resultados[0] };
+    } catch (err) {
+        console.error("Error al consultar la pareja para evaluación:", err);
+        return { success: false, code: "QUERY_ERROR", message: "No se pudo consultar la pareja. Intenta nuevamente." };
     }
 }
 
@@ -65,4 +86,4 @@ async function handleEliminarPareja(event, id) {
     }
 }
 
-module.exports = { handleRegistrarPareja, handleBuscarParejaPorID, handleBuscarTodasLasParejas, handleActualizarPareja, handleEliminarPareja };
+module.exports = { handleRegistrarPareja, handleBuscarParejaPorID, handleBuscarParejaParaEvaluacion, handleBuscarTodasLasParejas, handleActualizarPareja, handleEliminarPareja };

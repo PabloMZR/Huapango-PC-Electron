@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "electron .",
     "start": "electron .",
+    "test": "node --test tests/*.test.cjs",
     "build": "electron-builder",
     "clean": "rimraf dist"
   },
@@ -23,24 +24,21 @@
   "build": {
     "appId": "com.huapango.app",
     "productName": "HuapangoApp",
-    "asar": true, 
+    "asar": true,
     "directories": {
       "output": "dist"
     },
     "files": [
       "**/*",
-      "config.json",
       "Public/**/*",
-      "Vistas/**/*"
+      "Vistas/**/*",
+      "!config.json",
+      "!config.json.*"
     ],
     "extraResources": [
       {
-        "from": "config.json",
-        "to": "config.json"
-      },
-        {
-    "from": "uploads",
-    "to": "uploads"
+        "from": "uploads",
+        "to": "uploads"
       }
     ],
     "win": {

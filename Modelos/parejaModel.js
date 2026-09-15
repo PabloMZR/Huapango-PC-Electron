@@ -78,6 +78,23 @@ async function buscarParejaPorID(id) {
     }
 }
 
+// Proyección usada por la ficha de evaluación: filtrar antes de enviar datos por IPC.
+async function buscarParejaParaEvaluacion(id) {
+    const sql = `
+        SELECT
+            p.nParejaID,
+            CONCAT(p.cNombre, ' ', p.cApellido) AS nombreParticipante1,
+            CONCAT(p.cNombreM, ' ', p.cApellidoM) AS nombreParticipante2,
+            c.cCategoriaNombre AS categoriaNombre,
+            e.cEstiloNombre AS estiloNombre
+        FROM T_Participantes AS p
+        LEFT JOIN T_Categorias AS c ON p.nParejaID = c.nParejaID
+        LEFT JOIN T_Estilos AS e ON p.nParejaID = e.nParejaID
+        WHERE p.nParejaID = ?
+    `;
+    return queryDatabase(sql, [id]);
+}
+
 // Función para buscar todas las parejas
 async function buscarTodasLasParejas() {
     const sql = `
@@ -104,7 +121,7 @@ async function buscarTodasLasParejas() {
 
 // Función para actualizar una pareja
 // async function actualizarPareja(datos) { POSIBLE UUSO PAARA IMPLEMENTAR EL UPDATE DE MUJERES
-//     console.log("📌 Datos recibidos para actualizar pareja:", datos);
+//     console.log("Datos recibidos para actualizar pareja:", datos);
 
 //     const sql = `
 //         UPDATE T_Participantes
@@ -275,5 +292,5 @@ async function eliminarPareja(id) {
 
 
 
-module.exports = { registrarPareja, buscarParejaPorID, buscarTodasLasParejas, eliminarPareja, actualizarParejaCompleta };
+module.exports = { registrarPareja, buscarParejaPorID, buscarParejaParaEvaluacion, buscarTodasLasParejas, eliminarPareja, actualizarParejaCompleta };
 // module.exports = { registrarPareja, buscarParejaPorID, buscarTodasLasParejas, actualizarPareja, eliminarPareja, actualizarParejaCompleta };

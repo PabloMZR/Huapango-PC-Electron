@@ -1,20 +1,21 @@
 // Importaciones y dependencias
 const { app, BrowserWindow, ipcMain, Menu, dialog, shell, contextBridge } = require("electron");
 const path = require("path");
-const { queryDatabase, verificarConexion  } = require("./db"); // Importación para la base de datos
+const { inicializarBaseDatos } = require("./db");
+const { obtenerSesion, cerrarSesion } = require("./Modelos/sesionModel");
+const { fileURLToPath } = require("url");
 const PDFDocument = require('pdfkit'); // Importación de libreria para creación de PDF's
 const fs = require('fs'); // Importación de una dependencia de la libreria para el sistema de archivos 
 const { type } = require("os");
 //LAS EXPORTACIONES DE LOS CONTROLADORES SON LAS MÁS IMPORTANTES DEL MOMENTO
 const { handleLogin } = require("./Controladores/authController");
-const { handleRegistrarPareja, handleBuscarParejaPorID, handleBuscarTodasLasParejas, handleActualizarPareja } = require("./Controladores/parejaController");
+const { handleRegistrarPareja, handleBuscarParejaPorID, handleBuscarParejaParaEvaluacion, handleBuscarTodasLasParejas, handleActualizarPareja } = require("./Controladores/parejaController");
 const { handleRegistrarCategoria, handleActualizarCategoria, handleEliminarCategoria, handleBuscarCategoriaPorID } = require("./Controladores/categoriaController");
 const { handleRegistrarEstilo, handleActualizarEstilo, handleEliminarEstilo, handleBuscarEstiloPorID } = require("./Controladores/estiloController");
 const { handleCrearUsuario, handleEliminarUsuario, handleEliminarPareja, handleObtenerRolUsuario } = require("./Controladores/adminController");
 const { handleRegistrarEvaluacion, handleObtenerEvaluacionesPorPareja } = require("./Controladores/evaluacionesController");
 const { handleGenerarPDFParejas, handleGenerarPDFResultados, handleGenerarPDFCategorias, handleGenerarPDFEstilos, handleGenerarPDFRegistrosGenerales, handleDescargarManualUsuario  } = require("./Controladores/pdfController");
-const { handleGuardarConfiguracion } = require("./Controladores/configController");
-const { abrirVentanaEmergente } = require("./Controladores/ventanasController"); // ESTO ES POSIBLE QUE SE TERMINE ELIMINANDO TENGAN CUIDADO CON EL ARCHIVO DE PRELOAD
+const { handleGuardarConfiguracion, handleObtenerConfiguracion } = require("./Controladores/configController");
 const {handleGuardarImagenBuffer, handleGuardarImagen} = require("./Controladores/imagenesController");
 
 
@@ -27,6 +28,7 @@ ipcMain.handle("login", (event, credentials) => handleLogin(event, credentials, 
 // Conectar el evento IPC con el controlador
 ipcMain.handle("registrar-pareja", handleRegistrarPareja);
 ipcMain.handle("buscar-pareja-por-id", handleBuscarParejaPorID);
+ipcMain.handle("buscar-pareja-para-evaluacion", handleBuscarParejaParaEvaluacion);
 // ipcMain.handle("actualizar-pareja", handleActualizarPareja);
 // ipcMain.handle("actualizar-pareja", (event, datos) => {
 //     console.log("Enviando solicitud de actualización con datos DESDE MAIN.JS:", datos);
@@ -58,9 +60,30 @@ ipcMain.handle("generar-pdf-registros-generales", handleGenerarPDFRegistrosGener
 ipcMain.handle("registrar-evaluacion", handleRegistrarEvaluacion);
 ipcMain.handle("obtener-evaluaciones-por-pareja", handleObtenerEvaluacionesPorPareja);
 // Conectar el evento para guardar la configuración del archivo JSON dinamico.
-ipcMain.handle("guardar-configuracion", (event, nuevaConfig) => handleGuardarConfiguracion(event, nuevaConfig));
+ipcMain.handle("obtener-configuracion", desdeConfiguracion(handleObtenerConfiguracion));
+ipcMain.handle("guardar-configuracion", desdeConfiguracion(handleGuardarConfiguracion));
+ipcMain.handle("continuar-configuracion", desdeConfiguracion(async (event) => {
+    if (continuandoConfiguracion) return { success: false, error: "Espera a que termine la conexión." };
+    continuandoConfiguracion = true;
+    try {
+        await inicializarBaseDatos();
+        cerrarSesion();
+        global.userRole = "guest";
+        const origen = BrowserWindow.fromWebContents(event.sender);
+        if (!global.loginWindow || global.loginWindow.isDestroyed()) await createLoginWindow();
+        else global.loginWindow.focus();
+        for (const ventana of BrowserWindow.getAllWindows()) {
+            if (ventana !== origen && ventana !== global.loginWindow) ventana.close();
+        }
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: error.message };
+    } finally {
+        continuandoConfiguracion = false;
+    }
+}));
 // Conectar el evento IPC para abrir la ventana de configuración
-ipcMain.on("abrir-ventana-emergente", () => { abrirVentanaEmergente(); });
+ipcMain.on("abrir-ventana-emergente", () => { abrirConfiguracion(); });
 ipcMain.handle("guardarImagenBuffer", handleGuardarImagenBuffer);
 ipcMain.handle("guardarImagen", handleGuardarImagen);
 
@@ -78,7 +101,7 @@ function createLoginWindow() {
         },
     });
 
-    global.loginWindow.loadFile("Vistas/login.html");
+    return global.loginWindow.loadFile(path.join(__dirname, "Vistas", "login.html"));
 
 }
 
@@ -101,17 +124,17 @@ function createMainWindow() {
 
     // Asegúrate de que este evento se registre después de que la ventana haya sido creada
     global.mainWindow.webContents.once("did-finish-load", () => {
-        console.log("🔄 Enviando evento set-role con rol:", global.userRole || "guest");
+        console.log("Enviando evento set-role con rol:", global.userRole || "guest");
         global.mainWindow.webContents.send("set-role", global.userRole || "guest");
     });
 
     global.mainWindow.webContents.on("did-fail-load", (event, errorCode, errorDescription, validatedURL) => { // CODIGO QUE HAY QUE BORRAR
     if (errorDescription.includes("Autofill.enable") || errorDescription.includes("Autofill.setAddresses")) {
-        console.warn("⚠️ Error de Autofill ignorado:", errorDescription);
+        console.warn("Error de Autofill ignorado:", errorDescription);
     }
 });
 
-    console.log("✅ Ventana principal creada.");
+    console.log("Ventana principal creada.");
     
 }
 
@@ -165,7 +188,7 @@ function openNewWindow(tipo, file) {
     
     const filePath = path.join(__dirname, "Vistas", file);
 
-    // 🔹 Agregar parámetro de query SOLO para `BusquedaParejas.html`
+    // Agregar parámetro de query SOLO para `BusquedaParejas.html`
     if (file === "BusquedaParejas.html", "ModificarParejas.html") {
         ventanaEmergente.loadFile(filePath, { query: { emergente: "1" } })
             .catch(err => {
@@ -324,56 +347,63 @@ const templateMenu = [
             {
                 label: "Configuración",
                 submenu: [
-                    { label: "Base de Datos", click() { openNewWindow("modal","configuracionBD.html"); } }
+                    { label: "Base de Datos", click() { abrirConfiguracion(); } }
                 ]
             },
         ],
     },
 ];
 
-// Inicialización de la aplicación
-app.whenReady().then(async () => {
-    const conexionValida = await verificarConexion();
+// Solo la ventana local de configuración puede consultar o modificar la conexión.
+let configWindow = null;
+let continuandoConfiguracion = false;
 
-    if (!conexionValida) {
-        dialog.showErrorBox("Error de conexión", "No se pudo conectar a la base de datos. Verifica la configuración.");
-        
-        // 🔹 Abre la ventana de configuración para que el usuario pueda corregir la IP
-        const configWindow = new BrowserWindow({
-            width: 600,
-            height: 400,
-            webPreferences: {
-                preload: path.join(__dirname, "preload.js"),
-            },
-        });
+function desdeConfiguracion(handler) {
+    return (event, ...args) => {
+        try {
+            const ruta = fileURLToPath(event.sender.getURL());
+            if (path.resolve(ruta) === path.join(__dirname, "Vistas", "configuracionBD.html")) {
+                return handler(event, ...args);
+            }
+        } catch { /* No es un archivo local de la aplicación. */ }
+        return { success: false, error: "Abre la pantalla de configuración para realizar esta operación." };
+    };
+}
 
-        configWindow.loadFile(path.join(__dirname, "Vistas", "configuracionBD.html"));
-        
-        // 🔹 Cuando el usuario cierre la ventana, reinicia la aplicación para aplicar cambios
-        configWindow.on("close", () => {
-            app.relaunch();
-            app.exit();
-        });
-
-        return; // 🔹 Detiene la ejecución para que no cargue la ventana principal aún
+function abrirConfiguracion(motivo = "") {
+    if (configWindow && !configWindow.isDestroyed()) {
+        configWindow.focus();
+        return;
     }
+    configWindow = new BrowserWindow({
+        width: 680, height: 760, minWidth: 500, minHeight: 650,
+        webPreferences: {
+            preload: path.join(__dirname, "preload.js"),
+            nodeIntegration: false, contextIsolation: true
+        }
+    });
+    configWindow.on("closed", () => { configWindow = null; });
+    configWindow.loadFile(path.join(__dirname, "Vistas", "configuracionBD.html"), { query: { motivo } })
+        .catch(() => {
+            dialog.showErrorBox("Error de inicio", "No se pudo abrir la pantalla de configuración.");
+            app.quit();
+        });
+}
 
-    // 🔹 Si la conexión es válida, crear la ventana principal normalmente
-    createLoginWindow();
-    const mainMenu = Menu.buildFromTemplate(templateMenu);
-    Menu.setApplicationMenu(mainMenu);
+app.whenReady().then(async () => {
+    Menu.setApplicationMenu(Menu.buildFromTemplate(templateMenu));
+    try {
+        await inicializarBaseDatos();
+        await createLoginWindow();
+    } catch (error) {
+        abrirConfiguracion(error.message);
+    }
+}).catch(() => {
+    dialog.showErrorBox("Error de inicio", "No se pudo iniciar la aplicación.");
+    app.quit();
 });
 
-// Después del login exitoso:
-// main.js
-ipcMain.on("login-exitoso", (event, rol) => {
-    global.userRole = rol; // Asigna el rol recibido
-    createMainWindow();    // Crea la ventana principal
-    const mainMenu = Menu.buildFromTemplate(crearTemplateMenu(global.userRole)); // Crea el menú según el rol
-    Menu.setApplicationMenu(mainMenu); // Asigna el menú
-    if (global.loginWindow) global.loginWindow.close(); // Cierra la ventana de login si existe
-});
-
+app.on("window-all-closed", () => { app.quit(); });
 
 // Escuchar eventos desde el renderizador
 ipcMain.on("open-section", (event, section) => {
@@ -381,29 +411,6 @@ ipcMain.on("open-section", (event, section) => {
     openWindow(section);
 });
 
-//EL CANAL ABIERTO QUE PERMITE EL ENVIO DE ROLES AL PRELOAD
-ipcMain.handle("get-role", async () => {
-    try {
-        // Devuelve el rol del usuario actual
-        return global.userRole || "guest"; // Usa "guest" como valor predeterminado si no hay un rol definido
-    } catch (err) {
-        console.error("Error al obtener el rol del usuario:", err);
-        return "guest"; // Devuelve un rol predeterminado en caso de error
-    }
-});
-
-ipcMain.handle("get-usuario-id", async () => {
-    try {
-        // const configPath = path.join(__dirname, "config.json"); // SI ALGO NO FUNCIONA REVISA ACÁ ESTA RUTA FUNCIONA EN CÓDIGO NO EN PRODUCCIÓN
-        const configPath = path.join(app.getPath('userData'), "config.json");
-        if (fs.existsSync(configPath)) {
-            const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
-            return config.user || null; // EL CAMPO TIENE QUE SER IGUAL A CONFIG.JSON SI NO NO VA A FUNCIONAR
-        }
-        return null;
-    } catch (err) {
-        console.error("Error al obtener el ID del usuario:", err);
-        return null;
-    }
-});
-
+// La identidad de la sesión nunca se lee del archivo de conexión a MySQL.
+ipcMain.handle("get-role", () => obtenerSesion()?.userRole || "guest");
+ipcMain.handle("get-usuario-id", () => obtenerSesion()?.userID ?? null);
