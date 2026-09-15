@@ -2,10 +2,10 @@ const fs = require("fs");
 const path = require("path");
 const { app } = require("electron");
 
-// 📂 Ruta correcta en producción (NO en asar)
+// Ruta correcta en producción (NO en asar)
 const configPath = path.join(app.getPath("userData"), "config.json");
 
-// 📂 Ruta donde Electron empaqueta archivos externos (solo para copiar)
+// RFuta donde Electron empaqueta archivos externos (solo para copiar)
 const configSourcePath = path.join(process.resourcesPath, "config.json");
 
 function inicializarConfiguracion() {
@@ -14,19 +14,19 @@ function inicializarConfiguracion() {
             console.warn("⚠️ Archivo de configuración no encontrado, copiando desde recursos...");
             fs.copyFileSync(configSourcePath, configPath);
         }
-        console.log("✅ Configuración lista en:", configPath);
+        console.log("Configuración lista en:", configPath);
     } catch (error) {
-        console.error("❌ Error al copiar config.json:", error);
+        console.error("Error al copiar config.json:", error);
     }
 }
 
 function guardarConfiguracion(nuevaConfig) {
     try {
         fs.writeFileSync(configPath, JSON.stringify(nuevaConfig, null, 2), "utf8");
-        console.log("✅ Configuración guardada correctamente en:", configPath);
+        console.log("Configuración guardada correctamente en:", configPath);
         return { success: true };
     } catch (error) {
-        console.error("❌ Error al guardar la configuración:", error);
+        console.error("Error al guardar la configuración:", error);
         return { success: false, error: error.message };
     }
 }
@@ -39,10 +39,10 @@ function cargarConfiguracion() {
         }
 
         const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
-        console.log("✅ Configuración cargada correctamente desde:", configPath);
+        console.log("Configuración cargada correctamente desde:", configPath);
         return config;
     } catch (error) {
-        console.error("❌ Error al cargar la configuración:", error);
+        console.error("Error al cargar la configuración:", error);
         return null;
     }
 }

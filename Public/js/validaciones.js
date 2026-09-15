@@ -1,16 +1,16 @@
 // Validar los datos de una pareja
 export function validarDatosPareja(datos) {
-    console.log("🔎 Iniciando validación de pareja con datos:", datos);
+    console.log("Iniciando validación de pareja con datos:", datos);
 
     if (!datos.nParejaID) {
         throw new Error("El campo 'Número de pareja' es obligatorio.");
     }
     if (!datos.dNacimientoMasculino || !datos.nTelefonoMasculino || !datos.cNombreMasculino || !datos.cApellidoMasculino || !datos.cEmailMasculino) {
-        console.error("❌ Error en datos masculinos:", datos);
+        console.error("Error en datos masculinos:", datos);
         throw new Error("Todos los campos del participante masculino deben estar llenos.");
     }
     if (!datos.dNacimientoFemenino || !datos.cNombreFemenino || !datos.nTelefonoFemenino || !datos.cApellidoFemenino || !datos.cEmailFemenino) {
-        console.error("❌ Error en datos femeninos:", datos);
+        console.error("Error en datos femeninos:", datos);
         throw new Error("Todos los campos del participante femenino deben estar llenos.");
     }
 
@@ -21,7 +21,7 @@ export function validarDatosPareja(datos) {
     validarFecha(datos.dNacimientoMasculino);
     validarFecha(datos.dNacimientoFemenino);
 
-    console.log("✅ Validaciones completadas correctamente.");
+    console.log("Validaciones completadas correctamente.");
 }
 
 
@@ -50,14 +50,14 @@ export function validarIDPareja(id) {
 // Validar el ID de la categoría para la búsqueda
 export function validarIDCategoria(id) {
     if (!id || isNaN(id) || id <= 0) {
-        throw new Error("⚠️ El ID de la categoría es inválido.");
+        throw new Error("El ID de la categoría es inválido.");
     }
 }
 
 // Validar el ID del estilo para la búsqueda
 export function validarIDEstilo(id) {
     if (!id || isNaN(id) || id <= 0) {
-        throw new Error("⚠️ El ID del estilo es inválido.");
+        throw new Error("El ID del estilo es inválido.");
     }
 }
 
@@ -86,18 +86,18 @@ export function validarDatosUsuario(datos) {
 
 export function validarDatosEliminarUsuario(datos) {
     if (!datos.cNombreUsuario || datos.cNombreUsuario.length < 3) {
-        throw new Error("❌ El nombre de usuario debe tener al menos 3 caracteres.");
+        throw new Error("El nombre de usuario debe tener al menos 3 caracteres.");
     }
 }
 
 export function validarDatosParejaResultados(parejaData) {
     if (!parejaData || Object.keys(parejaData).length === 0) {
-        throw new Error("⚠️ No se encontró información de la pareja.");
+        throw new Error("No se encontró información de la pareja.");
     }
 
     // Validar que nParejaID sea un número válido
     if (!parejaData.nParejaID || isNaN(Number(parejaData.nParejaID))) {
-        throw new Error("⚠️ El ID de la pareja es inválido.");
+        throw new Error("El ID de la pareja es inválido.");
     }
 
     return {
@@ -113,7 +113,7 @@ export function validarDatosParejaResultados(parejaData) {
 export function validarEvaluacion(datos) {
     const { nJuezID, nParejaID, nPuntaje, cComentario } = datos;
 
-    // 🔹 Validar ID del juez y pareja (deben ser números positivos)
+    // Validar ID del juez y pareja (deben ser números positivos)
     if (!nJuezID || isNaN(nJuezID) || nJuezID <= 0) {
         return { success: false, error: "ID del juez inválido." };
     }
@@ -121,12 +121,12 @@ export function validarEvaluacion(datos) {
         return { success: false, error: "ID de la pareja inválido." };
     }
 
-    // 🔹 Validar puntaje (debe estar entre 0 y 50)
+    // Validar puntaje (debe estar entre 0 y 50)
     if (isNaN(nPuntaje) || nPuntaje < 0 || nPuntaje > 60) {
         return { success: false, error: "Puntaje fuera del rango permitido (0 - 60)." };
     }
 
-    // 🔹 Validar comentarios (máximo 255 caracteres)
+    // Validar comentarios (máximo 255 caracteres)
     if (cComentario.length > 255) {
         return { success: false, error: "El comentario es demasiado largo (máx. 255 caracteres)." };
     }

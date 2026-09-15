@@ -141,10 +141,10 @@ async function buscarTodasLasParejas() {
 //             datos.nParejaID,
 //         ]);
 
-//         console.log("✅ Resultado de la actualización:", result);
+//         console.log("Resultado de la actualización:", result);
 //         return { success: true, affectedRows: result.affectedRows };
 //     } catch (err) {
-//         console.error("❌ Error en la base de datos al actualizar pareja:", err);
+//         console.error("Error en la base de datos al actualizar pareja:", err);
 //         return { success: false, error: err.message };
 //     }
 // }
@@ -153,7 +153,7 @@ async function buscarTodasLasParejas() {
 
 //Función para actualizar una pareja
 // async function actualizarPareja(datos) {
-//     console.log("📌 Datos recibidos para actualizar pareja:", datos);
+//     console.log("Datos recibidos para actualizar pareja:", datos);
 //     const sql = `
 //         UPDATE T_Participantes 
 //         SET cNombre = ?, 
@@ -171,10 +171,10 @@ async function buscarTodasLasParejas() {
 //             datos.cApellido,
 //             datos.dNacimiento,
 //             datos.cEmail,
-//             datos.oFoto = oFoto ?? "C:/Proyecto/uploads/default.jpg", // 🔹 Usa imagen por defecto si no hay otra
+//             datos.oFoto = oFoto ?? "C:/Proyecto/uploads/default.jpg", // Usa imagen por defecto si no hay otra
 //             datos.nParejaID
 //         ]);
-//                 console.log("📊 Ejecutando consulta SQL con:", result);
+//                 console.log("Ejecutando consulta SQL con:", result);
 //         return { success: true, affectedRows: result.affectedRows };
 //     } catch (err) {
 //         console.error("Error en la actualización de pareja:", err);
@@ -187,7 +187,7 @@ async function buscarTodasLasParejas() {
 
 async function actualizarParejaCompleta(datos) {
     try {
-        console.log("🔹 [actualizarParejaCompleta] Datos recibidos:", datos);
+        console.log("[actualizarParejaCompleta] Datos recibidos:", datos);
 
         // Masculino
         const sqlMasculino = `
@@ -195,8 +195,8 @@ async function actualizarParejaCompleta(datos) {
             SET cNombre = ?, cApellido = ?, cEmail = ?, nTelefono = ?, dNacimiento = ?, oFoto = COALESCE(?, oFoto)
             WHERE nParejaID = ?
         `;
-        console.log("🔹 [actualizarParejaCompleta] SQL Masculino:", sqlMasculino);
-        console.log("🔹 [actualizarParejaCompleta] Params Masculino:", [
+        console.log("[actualizarParejaCompleta] SQL Masculino:", sqlMasculino);
+        console.log("[actualizarParejaCompleta] Params Masculino:", [
             datos.cNombreMasculino,
             datos.cApellidoMasculino,
             datos.cEmailMasculino,
@@ -214,7 +214,7 @@ async function actualizarParejaCompleta(datos) {
             datos.oFotoMasculino || null,
             datos.nParejaID
         ]);
-        console.log(`✅ Participante masculino actualizado. Filas afectadas: ${resultM.affectedRows}`);
+        console.log(`Participante masculino actualizado. Filas afectadas: ${resultM.affectedRows}`);
 
         // Femenino
         const sqlFemenino = `
@@ -222,8 +222,8 @@ async function actualizarParejaCompleta(datos) {
             SET cNombreM = ?, cApellidoM = ?, cEmailM = ?, nTelefonoM = ?, dNacimientoM = ?, IFotoM = COALESCE(?, IFotoM)
             WHERE nParejaID = ?
         `;
-        console.log("🔹 [actualizarParejaCompleta] SQL Femenino:", sqlFemenino);
-        console.log("🔹 [actualizarParejaCompleta] Params Femenino:", [
+        console.log("[actualizarParejaCompleta] SQL Femenino:", sqlFemenino);
+        console.log("[actualizarParejaCompleta] Params Femenino:", [
             datos.cNombreFemenino,
             datos.cApellidoFemenino,
             datos.cEmailFemenino,
@@ -241,7 +241,7 @@ async function actualizarParejaCompleta(datos) {
             datos.oFotoFemenino || null,
             datos.nParejaID
         ]);
-        console.log(`✅ Participante femenino actualizado. Filas afectadas: ${resultF.affectedRows}`);
+        console.log(`Participante femenino actualizado. Filas afectadas: ${resultF.affectedRows}`);
 
         return {
             success: true,
@@ -249,7 +249,7 @@ async function actualizarParejaCompleta(datos) {
             affectedRowsFemenino: resultF.affectedRows
         };
     } catch (err) {
-        console.error("❌ Error en la actualización de pareja:", err);
+        console.error("Error en la actualización de pareja:", err);
         return { success: false, error: err.message };
     }
 }

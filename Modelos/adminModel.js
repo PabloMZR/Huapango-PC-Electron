@@ -2,7 +2,7 @@ const { queryDatabase } = require("../db");
 
 // Crear un usuario
 async function crearUsuario(datos) {
-    console.log("📌 Datos recibidos para crear usuario:", datos);
+    console.log("Datos recibidos para crear usuario:", datos);
 
     const sql = `
         INSERT INTO T_Usuarios (nUsuarioID, cNombreUsuario, cContrasena, rol) 
@@ -13,7 +13,7 @@ async function crearUsuario(datos) {
         // Verificar que el rol es válido antes de insertar
         const rolesPermitidos = ["admin", "user", "juez"];
         if (!rolesPermitidos.includes(datos.rol)) {
-            throw new Error(`❌ Rol inválido: ${datos.rol}. Debe ser 'admin', 'user' o 'juez'.`);
+            throw new Error(`Rol inválido: ${datos.rol}. Debe ser 'admin', 'user' o 'juez'.`);
         }
 
         const result = await queryDatabase(sql, [
@@ -26,7 +26,7 @@ async function crearUsuario(datos) {
         return datos.nUsuarioID;
         // return result.insertId; // Devuelve el ID del usuario creado este esta mal hay que borrarlo esto
     } catch (err) {
-        console.error("❌ Error al crear usuario:", err.message);
+        console.error("Error al crear usuario:", err.message);
         throw new Error("Error al crear usuario: " + err.message);
     }
 }
@@ -50,10 +50,10 @@ async function eliminarUsuario(cNombreUsuario) {
 async function eliminarPareja(nParejaID) {
     try {
                 if (!nParejaID || typeof nParejaID !== "string") {
-            throw new Error("❌ ID de pareja inválido.");
+            throw new Error("ID de pareja inválido.");
         }
 
-        console.log("📝 Eliminando registros asociados a pareja ID:", nParejaID);
+        console.log("Eliminando registros asociados a pareja ID:", nParejaID);
         
         // Eliminar registros relacionados en las tablas hijas
         await queryDatabase("DELETE FROM T_Evaluaciones WHERE nParejaID = ?", [nParejaID]);
@@ -81,7 +81,7 @@ async function obtenerRolUsuario(cNombreUsuario) {
         // Si se encuentra el usuario, devolver su rol; de lo contrario, devolver null
         return result.length > 0 ? result[0].rol : null;
     } catch (err) {
-        throw new Error("❌ Error al obtener el rol del usuario: " + err.message);
+        throw new Error("Error al obtener el rol del usuario: " + err.message);
     }
 }
 

@@ -15,7 +15,7 @@ async function handleGenerarPDFParejas(event) {
         await shell.openPath(filePath); // 🔹 Abrir el PDF automáticamente
         return { success: true, ruta: filePath };
     } catch (err) {
-        console.error("❌ Error al generar el PDF de parejas:", err);
+        console.error("Error al generar el PDF de parejas:", err);
         return { success: false, error: err.message };
     }
 }
@@ -34,7 +34,7 @@ async function handleGenerarPDFResultados(event) {
         await shell.openPath(filePath);
         return { success: true, ruta: filePath };
     } catch (err) {
-        console.error("❌ Error al generar el PDF de resultados:", err);
+        console.error("Error al generar el PDF de resultados:", err);
         return { success: false, error: err.message };
     }
 }
@@ -53,7 +53,7 @@ async function handleGenerarPDFCategorias(event) {
         await shell.openPath(filePath);
         return { success: true, ruta: filePath };
     } catch (err) {
-        console.error("❌ Error al generar el PDF de categorías:", err);
+        console.error("Error al generar el PDF de categorías:", err);
         return { success: false, error: err.message };
     }
 }
@@ -72,7 +72,7 @@ async function handleGenerarPDFEstilos(event) {
         await shell.openPath(filePath);
         return { success: true, ruta: filePath };
     } catch (err) {
-        console.error("❌ Error al generar el PDF de estilos:", err);
+        console.error("Error al generar el PDF de estilos:", err);
         return { success: false, error: err.message };
     }
 }
@@ -91,7 +91,7 @@ async function handleGenerarPDFRegistrosGenerales(event) {
         await shell.openPath(filePath);
         return { success: true, ruta: filePath };
     } catch (err) {
-        console.error("❌ Error al generar el PDF de registros generales:", err);
+        console.error("Error al generar el PDF de registros generales:", err);
         return { success: false, error: err.message };
     }
 }

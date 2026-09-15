@@ -24,14 +24,14 @@ async function handleGuardarImagen(event, origen, destino) {
         const resultado = await guardarImagen(origen, destinoFinal);
         
         if (resultado.success) {
-            console.log(`✅ Imagen guardada exitosamente en: ${resultado.ruta}`);
+            console.log(`Imagen guardada exitosamente en: ${resultado.ruta}`);
         } else {
-            console.error(`❌ Error al guardar imagen: ${resultado.error}`);
+            console.error(`Error al guardar imagen: ${resultado.error}`);
         }
         
         return resultado;
     } catch (error) {
-        console.error(`❌ Error inesperado en handleGuardarImagen: ${error.message}`);
+        console.error(`Error inesperado en handleGuardarImagen: ${error.message}`);
         return { success: false, error: error.message };
     }
 }
@@ -41,10 +41,10 @@ async function handleGuardarImagenBuffer(event, arrayBuffer, destino) {
         const uploadsPath = path.join(app.getPath("userData"), "uploads");
         const destinoFinal = path.join(uploadsPath, path.basename(destino));
 
-        // 🔹 Crear directorio si no existe
+        // Crear directorio si no existe
         if (!fs.existsSync(uploadsPath)) fs.mkdirSync(uploadsPath, { recursive: true });
 
-        // 🔹 Guardar imagen
+        // Guardar imagen
         fs.writeFileSync(destinoFinal, Buffer.from(arrayBuffer));
 
         return { success: true, ruta: destinoFinal };

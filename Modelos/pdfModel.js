@@ -12,15 +12,15 @@ async function generarPDFParejas(filePath) {
             console.log("Resultados de la consulta:", resultados);
 
             if (!Array.isArray(resultados) || resultados.length === 0) {
-                console.warn("⚠️ No se encontraron parejas registradas.");
+                console.warn("No se encontraron parejas registradas.");
                 throw new Error("No se encontraron parejas registradas.");
             }
 
             if (!filePath || typeof filePath !== "string") {
-                throw new Error("❌ La ruta del archivo es inválida.");
+                throw new Error("La ruta del archivo es inválida.");
             }
 
-            // 🔹 Crear el documento PDF
+            // Crear el documento PDF
             const doc = new PDFDocument();
             const stream = fs.createWriteStream(filePath);
             doc.pipe(stream); // Guardar en la ubicación seleccionada
@@ -42,21 +42,21 @@ async function generarPDFParejas(filePath) {
                     .moveDown();
             });
 
-            doc.end(); // 🔹 Termina la generación del PDF
+            doc.end(); // Termina la generación del PDF
 
-            // 🔹 Esperar a que el archivo se termine de escribir antes de devolver la ruta
+            // Esperar a que el archivo se termine de escribir antes de devolver la ruta
             stream.on("finish", () => {
-                console.log(`✅ PDF guardado correctamente en: ${filePath}`);
+                console.log(`PDF guardado correctamente en: ${filePath}`);
                 resolve({ success: true, ruta: filePath });
             });
 
             stream.on("error", (error) => {
-                console.error("❌ Error al escribir el PDF:", error);
+                console.error("Error al escribir el PDF:", error);
                 reject({ success: false, error: error.message });
             });
 
         } catch (error) {
-            console.error("❌ Error en la generación del PDF:", error);
+            console.error("Error en la generación del PDF:", error);
             reject({ success: false, error: error.message });
         }
     });
@@ -79,7 +79,7 @@ async function generarPDFResultados(filePath) {
             }
 
             if (!filePath || typeof filePath !== "string") {
-                throw new Error("❌ La ruta del archivo es inválida.");
+                throw new Error("La ruta del archivo es inválida.");
             }
 
             const doc = new PDFDocument();
@@ -102,19 +102,19 @@ async function generarPDFResultados(filePath) {
 
             doc.end();
 
-            // 🔹 Esperar a que el archivo se termine de escribir antes de devolver éxito
+            // Esperar a que el archivo se termine de escribir antes de devolver éxito
             stream.on("finish", () => {
-                console.log(`✅ PDF de resultados generado correctamente en: ${filePath}`);
+                console.log(`PDF de resultados generado correctamente en: ${filePath}`);
                 resolve({ success: true, ruta: filePath });
             });
 
             stream.on("error", (error) => {
-                console.error("❌ Error al escribir el PDF:", error);
+                console.error("Error al escribir el PDF:", error);
                 reject({ success: false, error: error.message });
             });
 
         } catch (error) {
-            console.error("❌ Error en la generación del PDF:", error);
+            console.error("Error en la generación del PDF:", error);
             reject({ success: false, error: error.message });
         }
     });
@@ -126,11 +126,11 @@ async function generarPDFCategorias(filePath) {
             const resultados = await queryDatabase("SELECT * FROM T_Categorias");
 
             if (!Array.isArray(resultados) || resultados.length === 0) {
-                throw new Error("⚠️ No se encontraron categorías registradas.");
+                throw new Error(" No se encontraron categorías registradas.");
             }
 
             if (!filePath || typeof filePath !== "string") {
-                throw new Error("❌ La ruta del archivo es inválida.");
+                throw new Error("La ruta del archivo es inválida.");
             }
 
             const doc = new PDFDocument();
@@ -151,19 +151,19 @@ async function generarPDFCategorias(filePath) {
 
             doc.end();
 
-            // 🔹 Esperar que el archivo se escriba completamente antes de devolver éxito
+            // Esperar que el archivo se escriba completamente antes de devolver éxito
             stream.on("finish", () => {
-                console.log(`✅ PDF de categorías generado correctamente en: ${filePath}`);
+                console.log(`PDF de categorías generado correctamente en: ${filePath}`);
                 resolve({ success: true, ruta: filePath });
             });
 
             stream.on("error", (error) => {
-                console.error("❌ Error al escribir el PDF:", error);
+                console.error("Error al escribir el PDF:", error);
                 reject({ success: false, error: error.message });
             });
 
         } catch (error) {
-            console.error("❌ Error en la generación del PDF:", error);
+            console.error("Error en la generación del PDF:", error);
             reject({ success: false, error: error.message });
         }
     });
@@ -175,11 +175,11 @@ async function generarPDFEstilos(filePath) {
             const resultados = await queryDatabase("SELECT * FROM T_Estilos");
 
             if (!Array.isArray(resultados) || resultados.length === 0) {
-                throw new Error("⚠️ No se encontraron estilos registrados.");
+                throw new Error(" No se encontraron estilos registrados.");
             }
 
             if (!filePath || typeof filePath !== "string") {
-                throw new Error("❌ La ruta del archivo es inválida.");
+                throw new Error("La ruta del archivo es inválida.");
             }
 
             const doc = new PDFDocument();
@@ -200,19 +200,19 @@ async function generarPDFEstilos(filePath) {
 
             doc.end();
 
-            // 🔹 Esperar que el archivo se escriba completamente antes de devolver éxito
+            // Esperar que el archivo se escriba completamente antes de devolver éxito
             stream.on("finish", () => {
-                console.log(`✅ PDF de estilos generado correctamente en: ${filePath}`);
+                console.log(`PDF de estilos generado correctamente en: ${filePath}`);
                 resolve({ success: true, ruta: filePath });
             });
 
             stream.on("error", (error) => {
-                console.error("❌ Error al escribir el PDF:", error);
+                console.error("Error al escribir el PDF:", error);
                 reject({ success: false, error: error.message });
             });
 
         } catch (error) {
-            console.error("❌ Error en la generación del PDF:", error);
+            console.error("Error en la generación del PDF:", error);
             reject({ success: false, error: error.message });
         }
     });
@@ -250,17 +250,17 @@ async function generarPDFRegistrosGenerales(filePath) {
             doc.end();
 
             stream.on("finish", () => {
-                console.log("✅ PDF de registros generales generado correctamente:", filePath);
+                console.log("PDF de registros generales generado correctamente:", filePath);
                 resolve(filePath);
             });
 
             stream.on("error", (error) => {
-                console.error("❌ Error al escribir el PDF:", error);
+                console.error("Error al escribir el PDF:", error);
                 reject(error);
             });
 
         } catch (error) {
-            console.error("❌ Error en la generación del PDF:", error);
+            console.error("Error en la generación del PDF:", error);
             reject(error);
         }
     });

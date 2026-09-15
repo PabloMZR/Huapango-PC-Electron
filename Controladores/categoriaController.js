@@ -4,17 +4,17 @@ const { registrarCategoria, buscarCategoriaPorID ,actualizarCategoria, eliminarC
 async function handleRegistrarCategoria(event, datos) {
     try {
         if (await verificarParejaEnCategoria(datos.nParejaID)) {
-            throw new Error("❌ Esta pareja ya está registrada en una categoría.");
+            throw new Error("Esta pareja ya está registrada en una categoría.");
         }
 
         if (await verificarCategoriaExistente(datos.nParejaID, datos.nIDCategoria)) {
-            throw new Error("❌ Esta pareja ya está registrada en esta categoría.");
+            throw new Error("Esta pareja ya está registrada en esta categoría.");
         }
 
         const nIDCategoria = await registrarCategoria(datos);
         return { success: true, id: nIDCategoria };
     } catch (err) {
-        console.error("❌ Error al registrar categoría:", err);
+        console.error(" Error al registrar categoría:", err);
         return { success: false, error: err.message };
     }
 }
@@ -39,7 +39,7 @@ async function handleActualizarCategoria(event, datos) {
         const result = await actualizarCategoria(datos);
         return { success: true, result };
     } catch (err) {
-        console.error("❌ Error al actualizar categoría:", err);
+        console.error(" Error al actualizar categoría:", err);
         return { success: false, error: err.message };
     }
 }
@@ -50,7 +50,7 @@ async function handleEliminarCategoria(event, nIDCategoria) {
         const result = await eliminarCategoria(nIDCategoria);
         return { success: true, result };
     } catch (err) {
-        console.error("❌ Error al eliminar categoría:", err);
+        console.error(" Error al eliminar categoría:", err);
         return { success: false, error: err.message };
     }
 }

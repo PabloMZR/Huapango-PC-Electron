@@ -387,7 +387,7 @@ ipcMain.handle("get-role", async () => {
         // Devuelve el rol del usuario actual
         return global.userRole || "guest"; // Usa "guest" como valor predeterminado si no hay un rol definido
     } catch (err) {
-        console.error("❌ Error al obtener el rol del usuario:", err);
+        console.error("Error al obtener el rol del usuario:", err);
         return "guest"; // Devuelve un rol predeterminado en caso de error
     }
 });

@@ -4,17 +4,17 @@ const { registrarEstilo, buscarEstiloPorID, actualizarEstilo, eliminarEstilo, ve
 async function handleRegistrarEstilo(event, datos) {
     try {
         if (await verificarParejaEnEstilo(datos.nParejaID)) {
-            throw new Error("❌ Esta pareja ya está registrada en un estilo.");
+            throw new Error("Esta pareja ya está registrada en un estilo.");
         }
 
         if (await verificarEstiloExistente(datos.nParejaID, datos.nEstiloID)) {
-            throw new Error("❌ Esta pareja ya está registrada en este estilo.");
+            throw new Error("Esta pareja ya está registrada en este estilo.");
         }
 
         const nEstiloID = await registrarEstilo(datos);
         return { success: true, id: nEstiloID };
     } catch (err) {
-        console.error("❌ Error al registrar estilo:", err);
+        console.error("Error al registrar estilo:", err);
         return { success: false, error: err.message };
     }
 }

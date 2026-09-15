@@ -1,7 +1,7 @@
 export function mostrarResultados(resultados, containerClass) {
     const container = document.querySelector(`.${containerClass}`);
     if (!container) {
-        console.error(`❌ No se encontró el contenedor con clase '${containerClass}'`);
+        console.error(`No se encontró el contenedor con clase '${containerClass}'`);
         return;
     }
 
@@ -26,7 +26,7 @@ export function mostrarResultados(resultados, containerClass) {
 export function mostrarError(mensaje, containerClass) {
     const container = document.querySelector(`.${containerClass}`);
     if (!container) {
-        console.error(`❌ No se encontró el contenedor con clase '${containerClass}'`);
+        console.error(`No se encontró el contenedor con clase '${containerClass}'`);
         return;
     }
 
@@ -37,7 +37,7 @@ export function mostrarError(mensaje, containerClass) {
 export function mostrarSpinner(containerClass) {
     const container = document.querySelector(`.${containerClass}`);
     if (!container) {
-        console.error(`❌ No se encontró el contenedor con clase '${containerClass}'`);
+        console.error(`No se encontró el contenedor con clase '${containerClass}'`);
         return;
     }
 
@@ -48,7 +48,7 @@ export function mostrarSpinner(containerClass) {
 export function ocultarSpinner(containerClass) {
     const container = document.querySelector(`.${containerClass}`);
     if (!container) {
-        console.error(`❌ No se encontró el contenedor con clase '${containerClass}'`);
+        console.error(`No se encontró el contenedor con clase '${containerClass}'`);
         return;
     }
 

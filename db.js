@@ -146,7 +146,7 @@ async function verificarConexion() {
         console.log("✅ Conexión exitosa con la base de datos.");
         return true;
     } catch (error) {
-        console.error("❌ Error de conexión a la base de datos:", error);
+        console.error(" Error de conexión a la base de datos:", error);
         return false;
     }
 }
@@ -165,7 +165,7 @@ const pool = mysql.createPool({
 // Función optimizada para hacer consultas
 async function queryDatabase(sql, params = []) {
         if (params.includes(undefined)) {
-        console.error("❌ Error: Se está enviando `undefined` a la consulta SQL.", params);
+        console.error(" Error: Se está enviando `undefined` a la consulta SQL.", params);
         throw new Error("Los parámetros de la consulta contienen valores no definidos.");
     }
 

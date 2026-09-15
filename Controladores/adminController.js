@@ -3,19 +3,19 @@ const { crearUsuario, eliminarUsuario, eliminarPareja, obtenerRolUsuario  } = re
 // Controlador para crear un usuario
 async function handleCrearUsuario(event, datos) {
     try {
-        console.log("📌 Datos recibidos en el controlador:", datos);
+        console.log("Datos recibidos en el controlador:", datos);
 
         // Validar que el rol es correcto antes de enviarlo
         const rolesPermitidos = ["admin", "user", "juez"];
         if (!rolesPermitidos.includes(datos.rol)) {
-            throw new Error(`❌ Rol inválido: ${datos.rol}. Debe ser 'admin', 'user' o 'juez'.`);
+            throw new Error(`Rol inválido: ${datos.rol}. Debe ser 'admin', 'user' o 'juez'.`);
         }
 
         const userId = await crearUsuario(datos);
         return { success: true, id: userId };
 
     } catch (err) {
-        console.error("❌ Error en el controlador al crear usuario:", err);
+        console.error("Error en el controlador al crear usuario:", err);
         return { success: false, error: err.message };
     }
 }
@@ -25,26 +25,26 @@ async function handleCrearUsuario(event, datos) {
 async function handleEliminarUsuario(event, cNombreUsuario) {
     try {
         const rolUsuarioAEliminar = await obtenerRolUsuario(cNombreUsuario);
-        console.log(`📌 Intentando eliminar: ${cNombreUsuario}, Rol Detectado:`, rolUsuarioAEliminar);
+        console.log(`Intentando eliminar: ${cNombreUsuario}, Rol Detectado:`, rolUsuarioAEliminar);
 
         if (!rolUsuarioAEliminar) {
-            console.warn(`🚫 Usuario '${cNombreUsuario}' no encontrado en la base de datos.`);
-            return { success: false, message: "🚫 Usuario no encontrado." };
+            console.warn(`Usuario '${cNombreUsuario}' no encontrado en la base de datos.`);
+            return { success: false, message: "Usuario no encontrado." };
         }
 
-        // 🔹 Asegurar que la variable es válida antes de aplicar trim()
+        // Asegurar que la variable es válida antes de aplicar trim()
         const rolNormalizado = typeof rolUsuarioAEliminar === "string" ? rolUsuarioAEliminar.trim().toLowerCase() : "desconocido";
 
         console.log(`Rol a eliminar después de normalizar: '${rolNormalizado}'`);
 
-        // 🔹 Procede con la eliminación sin restricciones
+        // Procede con la eliminación sin restricciones
         const affectedRows = await eliminarUsuario(cNombreUsuario);
         return affectedRows > 0 
-            ? { success: true, message: `✅ Usuario '${cNombreUsuario}' eliminado correctamente.` }
-            : { success: false, message: "🚫 Usuario no encontrado en la base de datos." };
+            ? { success: true, message: `Usuario '${cNombreUsuario}' eliminado correctamente.` }
+            : { success: false, message: "Usuario no encontrado en la base de datos." };
 
     } catch (err) {
-        console.error("❌ Error en la eliminación:", err.message);
+        console.error(" Error en la eliminación:", err.message);
         return { success: false, message: err.message };
     }
 }
@@ -57,7 +57,7 @@ async function handleObtenerRolUsuario(event, cNombreUsuario) {
     try {
         return await obtenerRolUsuario(cNombreUsuario);
     } catch (err) {
-        console.error("❌ Error al obtener rol del usuario:", err);
+        console.error(" Error al obtener rol del usuario:", err);
         return null;
     }
 }
@@ -67,11 +67,11 @@ async function handleObtenerRolUsuario(event, cNombreUsuario) {
 async function handleEliminarPareja(event, nParejaID) {
     try {
                 if (!nParejaID || typeof nParejaID !== "string") {
-            console.error("❌ Error: nParejaID no es válido.");
+            console.error(" Error: nParejaID no es válido.");
             return { success: false, error: "ID de pareja inválido." };
         }
 
-        console.log("📝 Eliminando pareja con ID:", nParejaID);
+        console.log("Eliminando pareja con ID:", nParejaID);
         const affectedRows = await eliminarPareja(nParejaID);
         if (affectedRows > 0) {
             return { success: true };

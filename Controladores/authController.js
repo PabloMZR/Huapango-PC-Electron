@@ -11,7 +11,7 @@ async function handleLogin(event, credentials, createMainWindow) {
         const result = await queryDatabase(sql, [username, password]);
 
         if (result.length > 0) {
-            console.log("✅ Login exitoso:", result[0]);
+            console.log("Login exitoso:", result[0]);
 
             const userRole = result[0].rol; // El rol de la sesión ser "admin", "user" o "juez"
             guardarSesion(result[0].nUsuarioID, userRole);
@@ -56,26 +56,26 @@ async function handleLogin(event, credentials, createMainWindow) {
 
 function guardarSesion(userID, userRole) {
     try {
-        console.log("🔄 Guardando sesión en:", configPath);
+        console.log("Guardando sesión en:", configPath);
         let config = {};
 
-        // 🔹 Si el archivo existe, cargarlo; si no, crear estructura vacía
+        // Si el archivo existe, cargarlo; si no, crear estructura vacía
         if (fs.existsSync(configPath)) {
             config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
         } else {
-            console.warn("⚠️ Archivo de configuración no encontrado, creando...");
+            console.warn("Archivo de configuración no encontrado, creando...");
             config = {};
         }
 
-        // 🔹 Guardar usuario y rol
+        // Guardar usuario y rol
         config.user = userID;
         config.userRole = userRole;
 
-        // 🔹 Escribir en `config.json` asegurando que la ruta es correcta
+        // Escribir en `config.json` asegurando que la ruta es correcta
         fs.writeFileSync(configPath, JSON.stringify(config, null, 2), "utf-8");
-        console.log("✅ Sesión guardada correctamente en:", configPath);
+        console.log("Sesión guardada correctamente en:", configPath);
     } catch (error) {
-        console.error("❌ Error al guardar la sesión:", error);
+        console.error("Error al guardar la sesión:", error);
     }
 }
 
