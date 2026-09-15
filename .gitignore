@@ -26,9 +26,20 @@ pnpm-debug.log*
 logs/
 *.log
 
-# Entornos
+# Entornos; permitir una plantilla sin secretos
 .env
-.env.*.local
+.env.*
+!.env.example
+
+# Configuración local y sus respaldos
+config.json
+config.json.backup-*
+
+# Reportes generados
+/output/
+
+# Archivos de Windows
+desktop.ini
 
 # Sistema/IDE
 .DS_Store
@@ -41,5 +52,3 @@ coverage/
 .temp/
 .tmp/
 *.tmp
-
-config.json
