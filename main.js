@@ -20,6 +20,11 @@ const {handleGuardarImagenBuffer, handleGuardarImagen} = require("./Controladore
 
 
 
+const { obtenerBorradorRegistro, guardarBorradorRegistro, limpiarBorradorRegistro } = require("./Controladores/borradorRegistroController");
+ipcMain.handle("obtener-borrador-registro", obtenerBorradorRegistro);
+ipcMain.handle("guardar-borrador-registro", guardarBorradorRegistro);
+ipcMain.handle("limpiar-borrador-registro", limpiarBorradorRegistro);
+
 // MENSAJE GENERAL ELIMINAR POR FAVOR TODO EL CÓDIGO BASURA QUE NO SE UTILIZA, IGUAL LOS COMENTARIOS SOLO DEJAR LO QUE SEA DE UTILIDAD, IGUAL CON LAS LIBRERIAS QUE NO SE USAN
 
 

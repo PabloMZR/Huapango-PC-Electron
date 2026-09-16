@@ -30,6 +30,8 @@
         </header>
         
         <main>
+            <p id="estadoBorradorRegistro" class="estado-registro" role="status" aria-live="polite" aria-atomic="true"></p>
+            <p id="estadoPDFRegistro" class="estado-registro" role="status" aria-live="polite" aria-atomic="true"></p>
             <section>
                 <table class="data-table">
                     <tr>
@@ -63,8 +65,8 @@
                     
                     <div class="form-group">
                         <label class="form-label">Fecha de nacimiento:</label>
-                        <input type="date" id="fechaNacimientoMasculino" class="form-control">
-                        <input type="date" id="fechaNacimientoFemenino" class="form-control">
+                        <input type="date" id="fechaNacimientoMasculino" aria-label="Fecha de nacimiento del participante 1" class="form-control">
+                        <input type="date" id="fechaNacimientoFemenino" aria-label="Fecha de nacimiento del participante 2" class="form-control">
                     </div>
                     
                     <div class="form-group">
@@ -84,14 +86,14 @@
     <div class="gender-container">
         <div class="gender-row">
             <label class="gender-label">Participante 1:</label>
-            <select id="sexoMasculino" class="form-control gender-select">
+            <select id="sexoMasculino" aria-label="Sexo del participante 1" class="form-control gender-select">
                 <option value="M">Masculino</option>
                 <option value="F">Femenino</option>
             </select>
         </div>
         <div class="gender-row">
             <label class="gender-label">Participante 2:</label>
-            <select id="sexoFemenino" class="form-control gender-select">
+            <select id="sexoFemenino" aria-label="Sexo del participante 2" class="form-control gender-select">
                 <option value="F">Femenino</option>
                 <option value="M">Masculino</option>
             </select>
@@ -107,13 +109,20 @@
                 </div>
                 
                 <div class="btn-container">
+                    <p id="estadoRegistroPareja" class="estado-registro" role="status" aria-live="polite" aria-atomic="true"></p>
                     <button id="BTNSave" class="btn btn-save">Guardar</button>
+                    <button id="btnNuevaPareja" class="btn" type="button">Nueva pareja</button>
                     <button id="btnGenerarPDF" class="btn btn-pdf">Generar PDF de parejas</button>
                 </div>
             </section>
 
 
 
+            <div id="confirmarNuevaPareja" hidden>
+                <p>¿Vaciar el formulario para comenzar otra pareja? Se descartará el borrador. Los registros ya guardados en la base de datos se conservan.</p>
+                <button id="btnConfirmarNuevaPareja" type="button" class="btn">Sí, comenzar otra pareja</button>
+                <button id="btnCancelarNuevaPareja" type="button" class="btn">Seguir con esta pareja</button>
+            </div>
             <!-- HTML DE LOS REGISTROS DE CATEGORIAS Y ESTILOS -->
             <section>
                 <table class="data-table" style="display: none;">
@@ -148,11 +157,12 @@
                     <input id="nIDCategoria" type="text" class="form-control" placeholder="ID de la pareja">
                 </div>
                 <div class="form-group">
-                    <label for="nParejaID" class="form-label">ID de la pareja:</label>
-                    <input id="nParejaID" type="text" class="form-control" placeholder="ID de la pareja">
+                    <label for="nParejaIDCategoria" class="form-label">ID de la pareja:</label>
+                    <input id="nParejaIDCategoria" type="text" readonly class="form-control" placeholder="ID de la pareja">
                 </div>
                 
                 <div class="btn-container">
+                    <p id="estadoRegistroCategoria" class="estado-registro" role="status" aria-live="polite" aria-atomic="true"></p>
                     <button id="btnRegistrarCategoria" class="btn btnRegistraCatEst">Registrar Categoría</button>
                 </div>
             </section>
@@ -179,10 +189,11 @@
                 </div>
                 <div class="form-group">
                     <label for="nParejaIDEstilo" class="form-label">ID de la pareja:</label>
-                    <input id="nParejaIDEstilo" type="text" class="form-control" placeholder="ID de la pareja">
+                    <input id="nParejaIDEstilo" type="text" readonly class="form-control" placeholder="ID de la pareja">
                 </div>
                 
                 <div class="btn-container">
+                    <p id="estadoRegistroEstilo" class="estado-registro" role="status" aria-live="polite" aria-atomic="true"></p>
                     <button id="btnRegistrarEstilo" class="btn btnRegistraCatEst">Registrar Estilo</button>
                 </div>
 

@@ -53,7 +53,7 @@
                     
                     <div class="form-group">
                         <label class="form-label">Número de pareja:</label>
-                        <input id="nParejaID" type="text" class="form-control" placeholder="1(ID)">
+                        <input id="nParejaID" type="text" inputmode="numeric" aria-describedby="estadoBusquedaParejas" class="form-control" placeholder="1(ID)">
                     </div>
                 </div>
                 
@@ -62,6 +62,7 @@
                     <!-- <button class="btn btn-modify">Modificar</button>
                     <button class="btn btn-save">Guardar</button> -->
                 </div>
+                <p id="estadoBusquedaParejas" class="estado-busqueda" role="status" aria-live="polite" aria-atomic="true"></p>
                 <div class="resultadosBusquedaParejas">
                     <p><strong>cNombre:</strong> </p>
                     <p><strong>cApellido:</strong> </p>
@@ -79,7 +80,7 @@
                         <div class="form-container">
                             <div class="form-group">
                                 <label class="form-label">Número de la pareja para consultar su Categoria:</label>
-                                <input id="nIDCategoria" type="text" class="form-control" placeholder="1(ID)">
+                                <input id="nIDCategoria" type="text" inputmode="numeric" aria-describedby="estadoBusquedaCategorias" class="form-control" placeholder="1(ID)">
                             </div>
                         </div>
 
@@ -87,7 +88,8 @@
                             <button id="btnBuscarCategoria" class="btn btnBuscarPareja">Buscar</button>
                         </div>
 
-                        <div class="resultadosBusquedaCategorias">
+                        <p id="estadoBusquedaCategorias" class="estado-busqueda" role="status" aria-live="polite" aria-atomic="true"></p>
+                <div class="resultadosBusquedaCategorias">
                             <p><strong>Categoría:</strong> <span id="categoriaNombre">--</span></p>
                         </div>
                     </section>
@@ -99,7 +101,7 @@
                         <div class="form-container">
                             <div class="form-group">
                                 <label class="form-label">Número de la pareja para consultar su Estilo:</label>
-                                <input id="nEstiloID" type="text" class="form-control" placeholder="1(ID)">
+                                <input id="nEstiloID" type="text" inputmode="numeric" aria-describedby="estadoBusquedaEstilos" class="form-control" placeholder="1(ID)">
                             </div>
                         </div>
 
@@ -107,7 +109,8 @@
                             <button id="btnBuscarEstilo" class="btn btnBuscarPareja">Buscar</button>
                         </div>
 
-                        <div class="resultadosBusquedaEstilos">
+                        <p id="estadoBusquedaEstilos" class="estado-busqueda" role="status" aria-live="polite" aria-atomic="true"></p>
+                <div class="resultadosBusquedaEstilos">
                             <p><strong>Estilo:</strong> <span id="estiloNombre">--</span></p>
                         </div>
                     </section>

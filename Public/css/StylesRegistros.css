@@ -313,3 +313,8 @@ header h2 {
     font-size: 0.9rem;
   }
 }
+.estado-registro { width: 100%; margin: 8px 0; white-space: pre-wrap; }
+.estado-registro[data-tipo="error"] { color: #9b1c1c; font-weight: 600; }
+.btn-container { flex-wrap: wrap; }
+.btn:disabled { opacity: 0.65; cursor: wait; }
+#confirmarNuevaPareja { padding: 16px; border: 1px solid #aaa; margin: 16px 0; }

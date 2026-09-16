@@ -225,3 +225,7 @@ section {
     width: 100%;
   }
 }
+/* Avisos persistentes sin interrumpir la entrada de teclado. */
+.estado-busqueda { min-height: 1.5em; margin: 8px 0; }
+.estado-busqueda[data-tipo="error"] { color: #9b1c1c; font-weight: 600; }
+.btn:disabled { opacity: 0.65; cursor: wait; transform: none; }

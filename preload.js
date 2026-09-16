@@ -3,6 +3,9 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 // Exponer una API segura al renderizador
 contextBridge.exposeInMainWorld("api", {
+    obtenerBorradorRegistro: () => ipcRenderer.invoke("obtener-borrador-registro"),
+    guardarBorradorRegistro: (datos) => ipcRenderer.invoke("guardar-borrador-registro", datos),
+    limpiarBorradorRegistro: () => ipcRenderer.invoke("limpiar-borrador-registro"),
     getUserRole: () => ipcRenderer.invoke("get-role"), // Exponer el canal "get-role"
     registrarPareja: (datos) => ipcRenderer.invoke("registrar-pareja", datos),
     buscarParejaPorID: (id) => ipcRenderer.invoke("buscar-pareja-por-id", id),

@@ -1,16 +1,13 @@
 // Validar los datos de una pareja
 export function validarDatosPareja(datos) {
-    console.log("Iniciando validación de pareja con datos:", datos);
 
     if (!datos.nParejaID) {
         throw new Error("El campo 'Número de pareja' es obligatorio.");
     }
     if (!datos.dNacimientoMasculino || !datos.nTelefonoMasculino || !datos.cNombreMasculino || !datos.cApellidoMasculino || !datos.cEmailMasculino) {
-        console.error("Error en datos masculinos:", datos);
         throw new Error("Todos los campos del participante masculino deben estar llenos.");
     }
     if (!datos.dNacimientoFemenino || !datos.cNombreFemenino || !datos.nTelefonoFemenino || !datos.cApellidoFemenino || !datos.cEmailFemenino) {
-        console.error("Error en datos femeninos:", datos);
         throw new Error("Todos los campos del participante femenino deben estar llenos.");
     }
 
@@ -20,8 +17,6 @@ export function validarDatosPareja(datos) {
     validarTelefono(datos.nTelefonoFemenino);
     validarFecha(datos.dNacimientoMasculino);
     validarFecha(datos.dNacimientoFemenino);
-
-    console.log("Validaciones completadas correctamente.");
 }
 
 
