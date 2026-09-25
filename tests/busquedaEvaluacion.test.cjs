@@ -103,7 +103,9 @@ test("main conecta el canal con el controlador de la búsqueda", () => {
 });
 
 const toModuleURL = (source) => `data:text/javascript;base64,${Buffer.from(source).toString("base64")}`;
-const viewModule = import(toModuleURL(read("Public/js/busquedaEvaluacion.js").replace('"./validaciones.js"', JSON.stringify(toModuleURL(read("Public/js/validaciones.js"))))));
+const viewModule = import(toModuleURL(read("Public/js/busquedaEvaluacion.js")
+    .replace('"./validaciones.js"', JSON.stringify(toModuleURL(read("Public/js/validaciones.js"))))
+    .replace('"./avisos.js"', JSON.stringify(toModuleURL(read("Public/js/avisos.js"))))));
 
 async function view(api) {
     const elements = new Map();

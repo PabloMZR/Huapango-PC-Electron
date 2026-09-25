@@ -3,6 +3,7 @@ import { validarIDPareja, validarDatosEstilo, validarIDCategoria, validarIDEstil
 import { inicializarBusquedaEvaluacion } from "./busquedaEvaluacion.js";
 import { inicializarBusquedaParejas } from "./busquedaParejas.js";
 import { inicializarRegistros } from "./registroParejas.js";
+import { mostrarAviso, confirmarEliminacion, ejecutarAccion } from "./avisos.js";
 
 // Detectar si la ventana es emergente (por query string)
 const params = new URLSearchParams(window.location.search);
@@ -169,166 +170,71 @@ async function configurarMenu() {
 // Inicializar la lógica para la sección de Registros
 // Inicializar la lógica para la sección de Parejas
 function inicializarParejas() {
-
-    const btnRegistrarCategoria = document.getElementById("btnRegistrarCategoria");
-    const btnBuscarPareja = document.getElementById("btnBuscarPareja");
-    const btnBuscarCategoria = document.getElementById("btnBuscarCategoria");
-    const btnBuscarEstilo = document.getElementById("btnBuscarEstilo");
-    const btnModificarParejas = document.getElementById("btnModificarParejas");
-    const btnRegistrarEstilo = document.getElementById("btnRegistrarEstilo");
-
-            const btnGenerarPDFCategorias = document.getElementById("btnGenerarPDFCategorias");
-    if (btnGenerarPDFCategorias) {
-        btnGenerarPDFCategorias.addEventListener("click", async () => {
-            try {
-                const response = await window.api.generarPDFCategorias();
-                if (response.success) {
-                    alert(`PDF de categorías generado con éxito. Ruta: ${response.ruta}`);
-                } else {
-                    alert(`Error al generar el PDF: ${response.error}`);
-                }
-            } catch (err) {
-                alert("Error interno al generar el PDF de categorías.");
-            }
-        });
-    }
-
-    const btnGenerarPDFEstilos = document.getElementById("btnGenerarPDFEstilos");
-    if (btnGenerarPDFEstilos) {
-        btnGenerarPDFEstilos.addEventListener("click", async () => {
-            try {
-                const response = await window.api.generarPDFEstilos();
-                if (response.success) {
-                    alert(`PDF de estilos generado con éxito. Ruta: ${response.ruta}`);
-                } else {
-                    alert(`Error al generar el PDF: ${response.error}`);
-                }
-            } catch (err) {
-                alert("Error interno al generar el PDF de estilos.");
-            }
-        });
-    }
-
-    if (btnRegistrarCategoria) {
-        btnRegistrarCategoria.addEventListener("click", registrarCategoria);
-    } else {
-        console.error("No se encontró el botón con la ID 'btnRegistrarCategoria'.");
-    }
-
-    if (btnRegistrarEstilo) {
-        btnRegistrarEstilo.addEventListener("click", registrarEstilo);
-    }
-    else {
-        console.error("No se encontró el botón con la ID 'btnRegistrarEstilo'.");
-    }
-
-    // if (btnBuscarPareja) {
-    //     btnBuscarPareja.addEventListener("click", () => {
-    //         cargarVista("BusquedaParejas", inicializarBusquedaParejas);
-    //     });
-    // } else {
-    //     console.error("No se encontró el botón con la ID 'btnBuscarPareja'.");
-    // }
-
-    // if (btnEliminarPareja) {
-    //     e.preventDefault(); // Evitar que el formulario recargue la página
-    //     btnEliminarPareja.addEventListener("click", () => {
-    //     });
-    // } else {
-    //     console.error("No se encontró el botón con la ID 'btnEliminarPareja'.");
-    // }
-
-    if (btnModificarParejas) {
-        btnModificarParejas.addEventListener("click", () => {
-            cargarVista("ModificarParejas", inicializarModificarParejas);
-        });
-    } else {
-        console.error("No se encontró el botón con la ID 'btnModificarParejas'.");
-    }
+    document.getElementById("btnRegistrarCategoria")?.addEventListener("click", registrarCategoria);
+    document.getElementById("btnRegistrarEstilo")?.addEventListener("click", registrarEstilo);
+    vincularPDF("btnGenerarPDFCategorias", "generarPDFCategorias");
+    vincularPDF("btnGenerarPDFEstilos", "generarPDFEstilos");
 }
 
 // Función para registrar una categoría
 async function registrarCategoria() {
-    try {
-        const datos = {
-            nIDCategoria: document.getElementById("nIDCategoria").value.trim(),
-            cCategoriaNombre: document.getElementById("categoriaRegistro").options[document.getElementById("categoriaRegistro").selectedIndex].text,
-            nParejaID: document.getElementById("nParejaID").value.trim()
-        };
+    return ejecutarAccion("btnRegistrarCategoria", async () => {
+        try {
+            const datos = {
+                nIDCategoria: document.getElementById("nIDCategoria").value.trim(),
+                cCategoriaNombre: document.getElementById("categoriaRegistro").options[document.getElementById("categoriaRegistro").selectedIndex].text,
+                nParejaID: document.getElementById("nParejaID").value.trim()
+            };
 
-        validarDatosCategoria(datos); // Usamos la validación externa en `validaciones.js`
+            validarDatosCategoria(datos); // Usamos la validación externa en `validaciones.js`
 
-        console.log("Enviando datos al backend:", datos);
+            console.log("Enviando datos al backend:", datos);
 
-        const response = await window.api.registrarCategoria(datos);
-        alert(response.success ? "Categoría registrada exitosamente." : "Error: " + response.error);
-    } catch (err) {
-        console.error("Error al registrar categoría:", err);
-        alert("" + err.message);
-    }
+            const response = await window.api.registrarCategoria(datos);
+            mostrarAviso(response.success ? "Categoría registrada exitosamente." : "Error: " + response.error);
+        } catch (err) {
+            console.error("Error al registrar categoría:", err);
+            mostrarAviso("" + err.message);
+        }
+    });
 }
 
 
 // Función para registrar un estilo
 async function registrarEstilo() {
-    try {
-        const nEstiloInput = document.getElementById("nEstiloID");
-        if (!nEstiloInput) {
-            console.error("Error: No se encontró el elemento con ID 'nEstiloID'.");
-            alert("Error: No se encontró el campo para ingresar el ID del estilo.");
-            return;
+    return ejecutarAccion("btnRegistrarEstilo", async () => {
+        try {
+            const nEstiloInput = document.getElementById("nEstiloID");
+            if (!nEstiloInput) {
+                console.error("Error: No se encontró el elemento con ID 'nEstiloID'.");
+                mostrarAviso("Error: No se encontró el campo para ingresar el ID del estilo.");
+                return;
+            }
+
+            const estiloSelect = document.getElementById("estiloRegistro");
+            const nEstiloID = nEstiloInput.value.trim(); // ID del estilo ingresado manualmente
+            const cEstiloNombre = estiloSelect.options[estiloSelect.selectedIndex].text;
+            const nParejaID = document.getElementById("nParejaIDEstilo").value.trim();
+
+            validarDatosEstilo({ nEstiloID, cEstiloNombre, nParejaID });
+
+            console.log("Enviando datos al backend:", { nEstiloID, cEstiloNombre, nParejaID });
+
+            const response = await window.api.registrarEstilo({ nEstiloID, cEstiloNombre, nParejaID });
+
+            mostrarAviso(response.success ? "Estilo registrado exitosamente." : "Error: " + response.error);
+        } catch (err) {
+            console.error("Error al registrar estilo:", err);
+            mostrarAviso("" + err.message);
         }
-
-        const estiloSelect = document.getElementById("estiloRegistro");
-        const nEstiloID = nEstiloInput.value.trim(); // ID del estilo ingresado manualmente
-        const cEstiloNombre = estiloSelect.options[estiloSelect.selectedIndex].text;
-        const nParejaID = document.getElementById("nParejaIDEstilo").value.trim();
-
-        validarDatosEstilo({ nEstiloID, cEstiloNombre, nParejaID });
-
-        console.log("Enviando datos al backend:", { nEstiloID, cEstiloNombre, nParejaID });
-
-        const response = await window.api.registrarEstilo({ nEstiloID, cEstiloNombre, nParejaID });
-
-        alert(response.success ? "Estilo registrado exitosamente." : "Error: " + response.error);
-    } catch (err) {
-        console.error("Error al registrar estilo:", err);
-        alert("" + err.message);
-    }
+    });
 }
 
 
 
-function inicializarModificarParejas() { 
-    console.log("Inicializando lógica de modificación de parejas...");
-    
-    const btnGuardar = document.getElementById("BTNUpdate");
-    // const btnGuardarFem = document.getElementById("BTNUpdateFemenino");
-
-    // console.log("Elemento BTNUpdateFemenino:", document.getElementById("BTNUpdateFemenino"));
-
-    if (btnGuardar) {
-        console.log("Botón masculino encontrado, registrando evento...");
-        btnGuardar.addEventListener("click", (e) => {
-            e.preventDefault();
-            console.log("Evento click en BTNUpdate (Masculino)");
-            modificarPareja();
-        });
-    } else {
-        console.error("No se encontró el botón con la ID 'BTNUpdate'.");
-    }
-
-    // if (btnGuardarFem) {
-    //     console.log("Botón femenino encontrado, registrando evento...");
-    //     btnGuardarFem.addEventListener("click", (e) => {
-    //         e.preventDefault(); // Evitar que el formulario recargue la página
-    //         console.log("Evento click en BTNUpdateFemenino (Femenino) DETECTADO!");
-    //         modificarPareja();
-    //     });
-    // } else {
-    //         console.error("No se encontró el botón con la ID 'BTNUpdateFemenino'.");
-    //     }
-    }
+function inicializarModificarParejas() {
+    document.getElementById("BTNUpdate")?.addEventListener("click", modificarPareja);
+}
 
 
 function inicializarResultados() {
@@ -350,23 +256,7 @@ function inicializarResultados() {
         console.error("No se encontró el botón con la ID 'guardar-evaluacion'.");
     }
 
-        const btnGenerarPDFResultados = document.getElementById("btnGenerarPDFResultados");
-if (btnGenerarPDFResultados) {
-    btnGenerarPDFResultados.addEventListener("click", async () => {
-        try {
-            console.log("Botón de Generar PDF de Resultados presionado.");
-            const response = await window.api.generarPDFResultados();
-            if (response.success) {
-                alert(`PDF generado con éxito. Ruta: ${response.ruta}`);
-            } else {
-                alert(`Error al generar el PDF: ${response.error}`);
-            }
-        } catch (err) {
-            alert("Error interno al generar el PDF.");
-        }
-    });
-}
-
+    vincularPDF("btnGenerarPDFResultados", "generarPDFResultados");
 
     //  Función para actualizar los elementos evitando errores
     function actualizarElemento(id, valor) {
@@ -409,125 +299,57 @@ if (btnGenerarPDFResultados) {
 
 
 function inicializaAdministrador() {
-    console.log("Inicializando lógica de administrador...");
-
-    const btnCrearUsuario = document.getElementById("btnCrearUsuario");
-    if (btnCrearUsuario) {
-        btnCrearUsuario.addEventListener("click", (e) => {
-            e.preventDefault(); 
-
-            //  Detectar el tipo de cuenta seleccionado
-            const tipoCuenta = document.querySelector('input[name="tipoCuenta"]:checked').value;
-            console.log(`Creando cuenta con rol: ${tipoCuenta}`);
-
-            crearUsuario(tipoCuenta); // Pasar el tipo de cuenta al backend
-        });
-    } else {
-        console.error("No se encontró el botón con la ID 'btnCrearUsuario'.");
-    }
-
-const btnEliminarUsuario = document.getElementById("btnEliminarUsuario");
-if (btnEliminarUsuario) {
-    btnEliminarUsuario.addEventListener("click", (e) => {
-        e.preventDefault(); 
-
-        const cNombreUsuario = document.getElementById("usuarioEliminar")?.value.trim();
-
-        console.log("Valor de usuarioEliminar:", cNombreUsuario); //  Verificación
-
-        if (!cNombreUsuario || cNombreUsuario.length < 3) {
-            alert("Debes ingresar un nombre de usuario válido (mínimo 3 caracteres).");
-            return;
-        }
-
-        try {
-            console.log(`Usuario validado, eliminando: ${cNombreUsuario}`);
-            eliminarUsuario(cNombreUsuario);
-        } catch (error) {
-            alert(error.message);
-        }
-    });
-} else {
-    console.error("No se encontró el botón con la ID 'btnEliminarUsuario'.");
-}
-
-
-
-
-
-
-
-    const btnEliminarPareja = document.getElementById("btnEliminarPareja");
-    if (btnEliminarPareja) {
-        btnEliminarPareja.addEventListener("click", (e) => {
-            e.preventDefault(); 
-            eliminarPareja();
-        });
-    } else {
-        console.error("No se encontró el botón con la ID 'btnEliminarPareja'.");
-    }
-
-    const btnGenerarPDFRegistros = document.getElementById("btnGenerarPDFRegistros");
-    if (btnGenerarPDFRegistros) {
-        btnGenerarPDFRegistros.addEventListener("click", async () => {
-            try {
-                console.log("Botón de Generar PDF de Registros Generales presionado.");
-                const response = await window.api.generarPDFRegistrosGenerales();
-                if (response.success) {
-                    alert(`PDF de registros generales generado con éxito. Ruta: ${response.ruta}`);
-                } else {
-                    alert(`Error al generar el PDF: ${response.error}`);
-                }
-            } catch (err) {
-                alert("Error interno al generar el PDF de registros generales.");
-            }
-        });
-    }
+    document.getElementById("btnCrearUsuario")?.addEventListener("click", crearUsuario);
+    document.getElementById("btnEliminarUsuario")?.addEventListener("click", eliminarUsuario);
+    document.getElementById("btnEliminarPareja")?.addEventListener("click", eliminarPareja);
+    vincularPDF("btnGenerarPDFRegistros", "generarPDFRegistrosGenerales");
 }
 
 
 
 async function guardarEvaluacion() {
-    try {
-        document.getElementById("pareja-id-info")?.innerText // LOG QUE LUEGO SE VA A BORRAR
-        const nJuezID = await window.api.getUsuarioID(); // ID del juez desde la sesión
-        const nParejaID = document.getElementById("pareja-id-info").innerText.trim(); //REVISAR EL MALDITO id
+    return ejecutarAccion("guardar-evaluacion", async () => {
+        try {
+            document.getElementById("pareja-id-info")?.innerText // LOG QUE LUEGO SE VA A BORRAR
+            const nJuezID = await window.api.getUsuarioID(); // ID del juez desde la sesión
+            const nParejaID = document.getElementById("pareja-id-info").innerText.trim(); //REVISAR EL MALDITO id
 
-        if (!nJuezID || !nParejaID) {
-            alert("Error: No se ha identificado al juez o la pareja.");
-            return;
+            if (!nJuezID || !nParejaID) {
+                mostrarAviso("Error: No se ha identificado al juez o la pareja.");
+                return;
+            }
+
+            const aspecto1 = document.getElementById("aspecto1").value;
+            const aspecto2 = document.getElementById("aspecto2").value;
+            const aspecto3 = document.getElementById("aspecto3").value;
+            const aspecto4 = document.getElementById("aspecto4").value;
+            const aspecto5 = document.getElementById("aspecto5").value;
+            const aspecto6 = document.getElementById("aspecto6").value;
+            const cComentario = document.getElementById("observaciones").value.trim();
+            // Calcular el puntaje total
+            const nPuntaje = parseInt(aspecto1) + parseInt(aspecto2) + parseInt(aspecto3) + parseInt(aspecto4) + parseInt(aspecto5) + parseInt(aspecto6);
+
+            const datos = { nJuezID, nParejaID, nPuntaje, cComentario };
+
+            console.log("nJuezID:", nJuezID, "nParejaID:", nParejaID);
+            console.log("Datos de evaluación capturados:", datos);
+
+            //  Validar antes de enviar
+            const resultadoValidacion = validarEvaluacion(datos);
+            if (!resultadoValidacion.success) {
+                mostrarAviso(resultadoValidacion.error);
+                return;
+            }
+
+            console.log("Enviando evaluación al backend:", datos);
+            const response = await window.api.registrarEvaluacion(datos);
+
+            mostrarAviso(response.success ? "Evaluación guardada exitosamente." : "Error: " + response.error);
+        } catch (err) {
+            console.error("Error al guardar evaluación:", err);
+            mostrarAviso("" + err.message);
         }
-
-        const aspecto1 = document.getElementById("aspecto1").value;
-        const aspecto2 = document.getElementById("aspecto2").value;
-        const aspecto3 = document.getElementById("aspecto3").value;
-        const aspecto4 = document.getElementById("aspecto4").value;
-        const aspecto5 = document.getElementById("aspecto5").value;
-        const aspecto6 = document.getElementById("aspecto6").value;
-        const cComentario = document.getElementById("observaciones").value.trim();
-        // Calcular el puntaje total
-        const nPuntaje = parseInt(aspecto1) + parseInt(aspecto2) + parseInt(aspecto3) + parseInt(aspecto4) + parseInt(aspecto5) + parseInt(aspecto6);
-
-        const datos = { nJuezID, nParejaID, nPuntaje, cComentario };
-
-        console.log("nJuezID:", nJuezID, "nParejaID:", nParejaID);
-        console.log("Datos de evaluación capturados:", datos);
-
-        //  Validar antes de enviar
-        const resultadoValidacion = validarEvaluacion(datos);
-        if (!resultadoValidacion.success) {
-            alert(resultadoValidacion.error);
-            return;
-        }
-
-        console.log("Enviando evaluación al backend:", datos);
-        const response = await window.api.registrarEvaluacion(datos);
-
-        alert(response.success ? "Evaluación guardada exitosamente." : "Error: " + response.error);
-    } catch (err) {
-        console.error("Error al guardar evaluación:", err);
-        alert("" + err.message);
-    }
+    });
 }
 
 
@@ -544,7 +366,6 @@ async function guardarEvaluacion() {
 
 //             if (!file.path) {
 //                 console.error("La imagen seleccionada no tiene una ruta válida.");
-//                 alert("Debes seleccionar una imagen válida.");
 //                 return;
 //             }
 
@@ -555,7 +376,6 @@ async function guardarEvaluacion() {
 //                 oFoto = resultado.ruta;
 //             } else {
 //                 console.error("Error al guardar la imagen:", resultado.error);
-//                 alert("No se pudo guardar la imagen correctamente.");
 //                 oFoto = null;
 //             }
 //         }
@@ -582,89 +402,88 @@ async function guardarEvaluacion() {
 //         const response = await window.api.actualizarPareja(datos);
 
 //         if (response.success) {
-//             alert("Pareja actualizada exitosamente.");
 //         } else {
-//             alert("Error al actualizar pareja: " + response.message);
 //         }
 //     } catch (err) {
 //         console.error("Error al actualizar pareja:", err);
-//         alert("Error: " + err.message);
 //     }
 // }
 
 async function modificarPareja() {
-    try {
-        const nParejaID = document.getElementById("nParejaID").value.trim();
-        if (!nParejaID) {
-            alert("El ID de la pareja es obligatorio");
-            return;
-        }
-
-        // --- Guardar imagen masculina si hay nueva ---
-        let oFotoMasculino = document.getElementById("fotoMasculinoActual")?.value || null;
-        const inputFotoMasculino = document.getElementById("fotoMasculinoUpdate");
-        if (inputFotoMasculino.files.length > 0) {
-            const file = inputFotoMasculino.files[0];
-            const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
-            const rutaDestino = `uploads/${fileName}`;
-            const arrayBuffer = await file.arrayBuffer();
-            const resultado = await window.api.guardarImagenBuffer(arrayBuffer, rutaDestino);
-            if (resultado.success) {
-                oFotoMasculino = rutaDestino;
-            } else {
-                alert(`Error al guardar imagen masculina: ${resultado.error}`);
+    return ejecutarAccion("BTNUpdate", async () => {
+        try {
+            const nParejaID = document.getElementById("nParejaID").value.trim();
+            if (!nParejaID) {
+                mostrarAviso("El ID de la pareja es obligatorio");
                 return;
             }
-        }
 
-        // --- Guardar imagen femenina si hay nueva ---
-        let oFotoFemenino = document.getElementById("fotoFemeninoActual")?.value || null;
-        const inputFotoFemenino = document.getElementById("fotoFemeninoUpdate");
-        if (inputFotoFemenino.files.length > 0) {
-            const file = inputFotoFemenino.files[0];
-            const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
-            const rutaDestino = `uploads/${fileName}`;
-            const arrayBuffer = await file.arrayBuffer();
-            const resultado = await window.api.guardarImagenBuffer(arrayBuffer, rutaDestino);
-            if (resultado.success) {
-                oFotoFemenino = rutaDestino;
-            } else {
-                alert(`Error al guardar imagen femenina: ${resultado.error}`);
-                return;
+            // --- Guardar imagen masculina si hay nueva ---
+            let oFotoMasculino = document.getElementById("fotoMasculinoActual")?.value || null;
+            const inputFotoMasculino = document.getElementById("fotoMasculinoUpdate");
+            if (inputFotoMasculino.files.length > 0) {
+                const file = inputFotoMasculino.files[0];
+                const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+                const rutaDestino = `uploads/${fileName}`;
+                const arrayBuffer = await file.arrayBuffer();
+                const resultado = await window.api.guardarImagenBuffer(arrayBuffer, rutaDestino);
+                if (resultado.success) {
+                    oFotoMasculino = rutaDestino;
+                } else {
+                    mostrarAviso(`Error al guardar imagen masculina: ${resultado.error}`);
+                    return;
+                }
             }
+
+            // --- Guardar imagen femenina si hay nueva ---
+            let oFotoFemenino = document.getElementById("fotoFemeninoActual")?.value || null;
+            const inputFotoFemenino = document.getElementById("fotoFemeninoUpdate");
+            if (inputFotoFemenino.files.length > 0) {
+                const file = inputFotoFemenino.files[0];
+                const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+                const rutaDestino = `uploads/${fileName}`;
+                const arrayBuffer = await file.arrayBuffer();
+                const resultado = await window.api.guardarImagenBuffer(arrayBuffer, rutaDestino);
+                if (resultado.success) {
+                    oFotoFemenino = rutaDestino;
+                } else {
+                    mostrarAviso(`Error al guardar imagen femenina: ${resultado.error}`);
+                    return;
+                }
+            }
+
+            // --- Preparar datos para el update ---
+            const datos = {
+                nParejaID,
+                // Masculino
+                cNombreMasculino: document.getElementById("nombreMasculinoUpdate").value.trim(),
+                cApellidoMasculino: document.getElementById("apellidoMasculinoUpdate").value.trim(),
+                cEmailMasculino: document.getElementById("emailMasculinoUpdate").value.trim(),
+                nTelefonoMasculino: document.getElementById("telefonoMasculinoUpdate").value.trim(),
+                dNacimientoMasculino: document.getElementById("fechaNacimientoMasculinoUpdate").value.trim(),
+                oFotoMasculino,
+                // Femenino
+                cNombreFemenino: document.getElementById("nombreFemeninoUpdate").value.trim(),
+                cApellidoFemenino: document.getElementById("apellidoFemeninoUpdate").value.trim(),
+                cEmailFemenino: document.getElementById("emailFemeninoUpdate").value.trim(),
+                nTelefonoFemenino: document.getElementById("telefonoFemeninoUpdate").value.trim(),
+                dNacimientoFemenino: document.getElementById("fechaNacimientoFemeninoUpdate").value.trim(),
+                oFotoFemenino
+            };
+
+            console.log("Enviando solicitud de actualización con datos:", datos);
+            const response = await window.api.actualizarParejaCompleta(datos);
+
+            if (response.success) {
+                mostrarAviso("Pareja actualizada exitosamente.");
+                // Recargar datos si es necesario
+            } else {
+                mostrarAviso("Error al actualizar pareja: " + response.error);
+            }
+        } catch (err) {
+            mostrarAviso("Error: " + err.message);
         }
-
-        // --- Preparar datos para el update ---
-        const datos = {
-            nParejaID,
-            // Masculino
-            cNombreMasculino: document.getElementById("nombreMasculinoUpdate").value.trim(),
-            cApellidoMasculino: document.getElementById("apellidoMasculinoUpdate").value.trim(),
-            cEmailMasculino: document.getElementById("emailMasculinoUpdate").value.trim(),
-            nTelefonoMasculino: document.getElementById("telefonoMasculinoUpdate").value.trim(),
-            dNacimientoMasculino: document.getElementById("fechaNacimientoMasculinoUpdate").value.trim(),
-            oFotoMasculino,
-            // Femenino
-            cNombreFemenino: document.getElementById("nombreFemeninoUpdate").value.trim(),
-            cApellidoFemenino: document.getElementById("apellidoFemeninoUpdate").value.trim(),
-            cEmailFemenino: document.getElementById("emailFemeninoUpdate").value.trim(),
-            nTelefonoFemenino: document.getElementById("telefonoFemeninoUpdate").value.trim(),
-            dNacimientoFemenino: document.getElementById("fechaNacimientoFemeninoUpdate").value.trim(),
-            oFotoFemenino
-        };
-
-        console.log("Enviando solicitud de actualización con datos:", datos);
-        const response = await window.api.actualizarParejaCompleta(datos);
-
-        if (response.success) {
-            alert("Pareja actualizada exitosamente.");
-            // Recargar datos si es necesario
-        } else {
-            alert("Error al actualizar pareja: " + response.error);
-        }
-    } catch (err) {
-        alert("Error: " + err.message);
-    }
+    });
 }
 
 
@@ -672,88 +491,93 @@ async function modificarPareja() {
 
 // Crear un usuario
 async function crearUsuario() {
-    try {
-        console.log("Ejecutando crearUsuario...");
+    return ejecutarAccion("btnCrearUsuario", async () => {
+        try {
+            console.log("Ejecutando crearUsuario...");
 
-        // Capturar los datos del formulario
-        const nUsuarioID = document.getElementById("nuevoID").value.trim(); // ID manual del usuario
-        const cNombreUsuario = document.getElementById("nuevoUsuario").value.trim();
-        const cContrasena = document.getElementById("nuevaContrasena").value.trim();
-        const esAdmin = document.getElementById("esAdmin").checked; // Checkbox de administrador
-        const esJuez = document.getElementById("juez")?.checked || false; // Checkbox de juez
+            // Capturar los datos del formulario
+            const nUsuarioID = document.getElementById("nuevoID").value.trim(); // ID manual del usuario
+            const cNombreUsuario = document.getElementById("nuevoUsuario").value.trim();
+            const cContrasena = document.getElementById("nuevaContrasena").value.trim();
+            const esAdmin = document.getElementById("esAdmin").checked; // Checkbox de administrador
+            const esJuez = document.getElementById("juez")?.checked || false; // Checkbox de juez
 
-        // Validar que el ID sea un número positivo
-        if (!nUsuarioID || isNaN(nUsuarioID) || parseInt(nUsuarioID) <= 0) {
-            alert("Debes ingresar un ID de usuario válido (número positivo).");
-            return;
+            // Validar que el ID sea un número positivo
+            if (!nUsuarioID || isNaN(nUsuarioID) || parseInt(nUsuarioID) <= 0) {
+                mostrarAviso("Debes ingresar un ID de usuario válido (número positivo).");
+                return;
+            }
+
+            // Determinar el rol basado en los checkboxes
+            let rol = "user"; // Valor por defecto
+            if (esAdmin) rol = "admin";
+            if (esJuez) rol = "juez"; // Si es juez, sobrescribe "admin"
+
+            // Validar los datos
+            validarDatosUsuario({ nUsuarioID, cNombreUsuario, cContrasena, rol });
+
+            // Realizar la solicitud al backend
+            const response = await window.api.crearUsuario({ nUsuarioID, cNombreUsuario, cContrasena, rol });
+
+            if (response.success) {
+                mostrarAviso("Usuario creado con éxito, ID: " + response.id);
+                document.getElementById("nuevoID").value = "";
+                document.getElementById("nuevoUsuario").value = "";
+                document.getElementById("nuevaContrasena").value = "";
+                document.getElementById("esAdmin").checked = false;
+                if (document.getElementById("juez")) document.getElementById("juez").checked = false;
+                document.getElementById("tipoUsuario").checked = true;
+            } else {
+                mostrarAviso("Error al crear usuario: " + response.error);
+            }
+        } catch (err) {
+            console.error("Error al crear usuario:", err);
+            mostrarAviso(`${err.message}`);
         }
-
-        // Determinar el rol basado en los checkboxes
-        let rol = "user"; // Valor por defecto
-        if (esAdmin) rol = "admin";
-        if (esJuez) rol = "juez"; // Si es juez, sobrescribe "admin"
-
-        // Validar los datos
-        validarDatosUsuario({ nUsuarioID, cNombreUsuario, cContrasena, rol });
-
-        // Realizar la solicitud al backend
-        const response = await window.api.crearUsuario({ nUsuarioID, cNombreUsuario, cContrasena, rol });
-
-        if (response.success) {
-            alert("Usuario creado con éxito, ID: " + response.id);
-            document.getElementById("nuevoID").value = "";
-            document.getElementById("nuevoUsuario").value = "";
-            document.getElementById("nuevaContrasena").value = "";
-            document.getElementById("esAdmin").checked = false;
-            if (document.getElementById("juez")) document.getElementById("juez").checked = false;
-        } else {
-            alert("Error al crear usuario: " + response.error);
-        }
-    } catch (err) {
-        console.error("Error al crear usuario:", err);
-        alert(`${err.message}`);
-    }
+    });
 }
 
 async function crearJuez() {
-    try {
-        console.log("Ejecutando crearJuez...");
+    return ejecutarAccion("btnCrearJuez", async () => {
+        try {
+            console.log("Ejecutando crearJuez...");
 
-        // Capturar los datos específicos del juez
-        const nUsuarioID = document.getElementById("nuevoJuezID").value.trim(); // Se mantiene igual
-        const cNombreUsuario = document.getElementById("nuevoJuezUsuario").value.trim();
-        const cContrasena = document.getElementById("nuevoJuezContrasena").value.trim();
-        const esJuez = document.getElementById("juez").checked; // Checkbox para jueces
+            // Capturar los datos específicos del juez
+            const nUsuarioID = document.getElementById("nuevoJuezID").value.trim(); // Se mantiene igual
+            const cNombreUsuario = document.getElementById("nuevoJuezUsuario").value.trim();
+            const cContrasena = document.getElementById("nuevoJuezContrasena").value.trim();
+            const esJuez = document.getElementById("juez").checked; // Checkbox para jueces
 
-        // Validar que el ID sea un número positivo
-        if (!nUsuarioID || isNaN(nUsuarioID) || parseInt(nUsuarioID) <= 0) {
-            alert("Debes ingresar un ID de usuario válido (número positivo).");
-            return;
+            // Validar que el ID sea un número positivo
+            if (!nUsuarioID || isNaN(nUsuarioID) || parseInt(nUsuarioID) <= 0) {
+                mostrarAviso("Debes ingresar un ID de usuario válido (número positivo).");
+                return;
+            }
+
+            // Definir el rol correctamente
+            let rol = "user"; // Por defecto es "user"
+            if (esJuez) rol = "juez"; // Si se marca el checkbox de juez, asignar "juez"
+
+            // Validar los datos
+            validarDatosUsuario({ nUsuarioID, cNombreUsuario, cContrasena, rol });
+
+            // Realizar la solicitud al backend
+            const response = await window.api.crearUsuario({ nUsuarioID, cNombreUsuario, cContrasena, rol });
+
+            if (response.success) {
+                mostrarAviso("Juez creado con éxito, ID: " + response.id);
+                document.getElementById("nuevoID").value = "";
+                document.getElementById("nuevoJuezUsuario").value = "";
+                document.getElementById("nuevoJuezContrasena").value = "";
+                document.getElementById("juez").checked = false;
+            } else {
+                mostrarAviso("Error al crear juez: " + response.error);
+            }
+        } catch (err) {
+            console.error("Error al crear juez:", err);
+            mostrarAviso(`${err.message}`);
         }
-
-        // Definir el rol correctamente
-        let rol = "user"; // Por defecto es "user"
-        if (esJuez) rol = "juez"; // Si se marca el checkbox de juez, asignar "juez"
-
-        // Validar los datos
-        validarDatosUsuario({ nUsuarioID, cNombreUsuario, cContrasena, rol });
-
-        // Realizar la solicitud al backend
-        const response = await window.api.crearUsuario({ nUsuarioID, cNombreUsuario, cContrasena, rol });
-
-        if (response.success) {
-            alert("Juez creado con éxito, ID: " + response.id);
-            document.getElementById("nuevoID").value = "";
-            document.getElementById("nuevoJuezUsuario").value = "";
-            document.getElementById("nuevoJuezContrasena").value = "";
-            document.getElementById("juez").checked = false;
-        } else {
-            alert("Error al crear juez: " + response.error);
-        }
-    } catch (err) {
-        console.error("Error al crear juez:", err);
-        alert(`${err.message}`);
-    }
+    });
 }
 
 // document.getElementById("btnCrearUsuario").addEventListener("click", async () => {
@@ -763,67 +587,68 @@ async function crearJuez() {
 //         const esAdmin = document.getElementById("esAdmin").checked;
 
 //         if (!cNombreUsuario || !cContrasena) {
-//             alert("Completa todos los campos.");
 //             return;
 //         }
 
 //         const response = await window.api.crearUsuario({ cNombreUsuario, cContrasena, esAdmin });
 
 //         if (response.success) {
-//             alert("Usuario creado con éxito, ID: " + response.id);
 //         } else {
-//             alert("Error al crear usuario: " + response.error);
 //         }
 //     } catch (err) {
 //         console.error("Error al crear usuario:", err);
-//         alert("Error interno.");
 //     }
 // });
 
 // Eliminar un usuario
 async function eliminarUsuario() {
-    try {
-        console.log("Ejecutando eliminarUsuario...");
+    return ejecutarAccion("btnEliminarUsuario", async () => {
+        try {
+            console.log("Ejecutando eliminarUsuario...");
 
-        const cNombreUsuario = document.getElementById("usuarioEliminar")?.value.trim();
-        console.log(` Valor ingresado: '${cNombreUsuario}'`);
+            const cNombreUsuario = document.getElementById("usuarioEliminar")?.value.trim();
+            console.log(` Valor ingresado: '${cNombreUsuario}'`);
 
-        if (!cNombreUsuario || cNombreUsuario.length < 3) {
-            alert("Debes ingresar un nombre de usuario válido (mínimo 3 caracteres).");
-            return;
+            if (!cNombreUsuario || cNombreUsuario.length < 3) {
+                mostrarAviso("Debes ingresar un nombre de usuario válido (mínimo 3 caracteres).");
+                return;
+            }
+
+            validarDatosEliminarUsuario({ cNombreUsuario });
+
+            //  Consultar el rol antes de eliminar
+            console.log(`Consultando rol del usuario: '${cNombreUsuario}'`);
+            const rolUsuarioAEliminar = await window.api.obtenerRolUsuario(cNombreUsuario);
+            console.log(`Rol obtenido: '${rolUsuarioAEliminar}'`);
+
+            if (!rolUsuarioAEliminar) {
+                mostrarAviso("Usuario no encontrado.");
+                return;
+            }
+
+            //  Crear el mensaje de confirmación dinámico
+            const confirmacion = await confirmarEliminacion(`¿Estás seguro de que deseas eliminar a "${cNombreUsuario}" (${rolUsuarioAEliminar})?`);
+            if (!confirmacion) {
+                mostrarAviso("Eliminación cancelada. No se cambió ningún registro.");
+                return;
+            }
+
+            //  Enviar solicitud de eliminación
+            console.log(`Eliminando usuario: '${cNombreUsuario}'`);
+            const response = await window.api.eliminarUsuario(cNombreUsuario);
+            console.log(` Respuesta del backend:`, response);
+
+            if (response.success) {
+                mostrarAviso(`${rolUsuarioAEliminar} eliminado con éxito.`);
+                document.getElementById("usuarioEliminar").value = "";
+            } else {
+                mostrarAviso(response.message || response.error || "No se pudo eliminar el usuario.");
+            }
+        } catch (err) {
+            console.error("Error al eliminar usuario:", err.message);
+            mostrarAviso(`${err.message}`);
         }
-
-        validarDatosEliminarUsuario({ cNombreUsuario });
-
-        //  Consultar el rol antes de eliminar
-        console.log(`Consultando rol del usuario: '${cNombreUsuario}'`);
-        const rolUsuarioAEliminar = await window.api.obtenerRolUsuario(cNombreUsuario);
-        console.log(`Rol obtenido: '${rolUsuarioAEliminar}'`);
-
-        if (!rolUsuarioAEliminar) {
-            alert("Usuario no encontrado.");
-            return;
-        }
-
-        //  Crear el mensaje de confirmación dinámico
-        const confirmacion = confirm(`¿Estás seguro de que deseas eliminar a "${cNombreUsuario}" (${rolUsuarioAEliminar})?`);
-        if (!confirmacion) return;
-
-        //  Enviar solicitud de eliminación
-        console.log(`Eliminando usuario: '${cNombreUsuario}'`);
-        const response = await window.api.eliminarUsuario(cNombreUsuario);
-        console.log(` Respuesta del backend:`, response);
-
-        if (response.success) {
-            alert(`${rolUsuarioAEliminar} eliminado con éxito.`);
-            document.getElementById("usuarioEliminar").value = ""; 
-        } else {
-            alert(`${response.message}`);
-        }
-    } catch (err) {
-        console.error("Error al eliminar usuario:", err.message);
-        alert(`${err.message}`);
-    }
+    });
 }
 
 
@@ -833,40 +658,44 @@ async function eliminarUsuario() {
 
 // Eliminar una pareja
 async function eliminarPareja() {
-    try {
-        console.log("Ejecutando eliminarPareja...");
+    return ejecutarAccion("btnEliminarPareja", async () => {
+        try {
+            console.log("Ejecutando eliminarPareja...");
 
-        // Capturar el ID de la pareja desde el formulario
-        const nParejaID = document.getElementById("nParejaID").value.trim();
+            // Capturar el ID de la pareja desde el formulario
+            const nParejaID = document.getElementById("nParejaID").value.trim();
 
-                if (!nParejaID || nParejaID === "") {
-            alert("Error: Debes ingresar un ID válido antes de eliminar.");
-            return;
+            if (!nParejaID) {
+                mostrarAviso("Error: Debes ingresar un ID válido antes de eliminar.");
+                return;
+            }
+
+            console.log("ID de pareja a eliminar:", nParejaID);
+
+            // Validar el ID
+            validarIDPareja(nParejaID);
+
+            // Confirmar la eliminación
+            const confirmacion = await confirmarEliminacion(`¿Eliminar la pareja con ID ${nParejaID}? Confirma para continuar.`);
+            if (!confirmacion) {
+                mostrarAviso("Eliminación cancelada. No se cambió ningún registro.");
+                return;
+            }
+
+            // Realizar la solicitud al backend
+            const response = await window.api.eliminarPareja(nParejaID);
+
+            if (response.success) {
+                mostrarAviso("Pareja eliminada con éxito.");
+                document.getElementById("nParejaID").value = "";
+            } else {
+                mostrarAviso(response.message || response.error || "Ocurrió un error inesperado.");
+            }
+        } catch (err) {
+            console.error("Error al eliminar pareja:", err);
+            mostrarAviso(`${err.message}`);
         }
-
-        console.log("ID de pareja a eliminar:", nParejaID);
-
-        // Validar el ID
-        validarIDPareja(nParejaID);
-
-        // Confirmar la eliminación
-        const confirmacion = confirm("¿Estás seguro de que deseas eliminar esta pareja?");
-        if (!confirmacion) return;
-
-        // Realizar la solicitud al backend
-        const response = await window.api.eliminarPareja(nParejaID);
-
-        if (response.success) {
-    alert("Pareja eliminada con éxito.");
-    document.getElementById("nParejaID").value = "";
-} else {
-    // Muestra el mensaje si existe, si no, muestra el error
-    alert(`${response.message || response.error || "Ocurrió un error inesperado."}`);
-}
-    } catch (err) {
-        console.error("Error al eliminar pareja:", err);
-        alert(`${err.message}`);
-    }
+    });
 }
 
 
@@ -875,14 +704,11 @@ async function eliminarPareja() {
 //         const response = await window.api.generarPDFParejas();
 
 //         if (response.success) {
-//             alert(`PDF generado con éxito. Ruta: ${response.ruta}`);
 //             console.log("PDF generado en:", response.ruta);
 //         } else {
-//             alert(`Error al generar el PDF: ${response.error}`);
 //         }
 //     } catch (err) {
 //         console.error("Error al generar el PDF:", err);
-//         alert("Error interno al generar el PDF.");
 //     }
 // });
 
@@ -893,15 +719,20 @@ async function eliminarPareja() {
 //         const response = await window.api.generarPDFParejas();
 
 //         if (response.success) {
-//             alert(`PDF generado con éxito. Ruta: ${response.ruta}`);
 //             console.log("PDF generado en:", response.ruta);
 //         } else {
-//             alert(`Error al generar el PDF: ${response.error}`);
 //             console.error("Error:", response.error);
 //         }
 //     } catch (err) {
 //         console.error("Error al generar el PDF:", err);
-//         alert("Error interno al generar el PDF.");
 //     }
 // });
 
+
+function vincularPDF(botonID, metodo) {
+    document.getElementById(botonID)?.addEventListener("click", () => ejecutarAccion(botonID, async () => {
+        const response = await window.api[metodo]();
+        mostrarAviso(response?.success ? `PDF generado con éxito. Ruta: ${response.ruta}` :
+            (response?.error || response?.message || "No se pudo generar el PDF."));
+    }));
+}

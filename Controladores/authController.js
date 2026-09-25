@@ -1,16 +1,20 @@
 const { queryDatabase } = require("../db");
 const { guardarSesion } = require("../Modelos/sesionModel");
 
-async function handleLogin(event, credentials, createMainWindow) {
-    const { username, password } = credentials;
+let autenticando = false;
 
+async function handleLogin(event, credentials, createMainWindow) {
+    if (autenticando) return { success: false, message: "Espera a que termine el inicio de sesión." };
+    autenticando = true;
     try {
+        const { username, password } = credentials || {};
+        if (typeof username !== "string" || !username.trim() || typeof password !== "string" || !password) {
+            return { success: false, message: "Completa el usuario y la contraseña." };
+        }
         const sql = "SELECT nUsuarioID, cNombreUsuario, rol FROM t_usuarios WHERE cNombreUsuario = ? AND cContrasena = ?";
-        const result = await queryDatabase(sql, [username, password]);
+        const result = await queryDatabase(sql, [username.trim(), password]);
 
         if (result.length > 0) {
-            console.log("Login exitoso:", result[0]);
-
             const userRole = result[0].rol; // El rol de la sesión ser "admin", "user" o "juez"
             guardarSesion(result[0].nUsuarioID, userRole);
 
@@ -38,6 +42,8 @@ async function handleLogin(event, credentials, createMainWindow) {
     } catch (err) {
         console.error("Error al validar el login:", err);
         return { success: false, error: "Error interno al validar el login" };
+    } finally {
+        autenticando = false;
     }
 }
 
