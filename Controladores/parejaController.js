@@ -61,14 +61,16 @@ async function handleBuscarTodasLasParejas(event) {
 // Controlador para actualizar una pareja
 async function handleActualizarPareja(event, datos) {
     try {
-        const filasAfectadas = await actualizarParejaCompleta(datos);
+        const resultado = await actualizarParejaCompleta(datos);
+        const filasAfectadas = typeof resultado === "number" ? resultado : (resultado?.affectedRows ?? 0);
         if (filasAfectadas === 0) {
-            return { success: false, message: "No se encontró ninguna pareja con ese ID para actualizar." };
+            const mensaje = "No se encontró ninguna pareja con ese ID para actualizar.";
+            return { success: false, message: mensaje, error: mensaje };
         }
         return { success: true, message: "Pareja actualizada exitosamente." };
     } catch (err) {
         console.error("Error en el controlador de actualización de pareja:", err);
-        return { success: false, error: err.message };
+        return { success: false, error: err.message, message: err.message };
     }
 }
 

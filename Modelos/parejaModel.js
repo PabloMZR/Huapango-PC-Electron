@@ -2,7 +2,9 @@ const { queryDatabase } = require("../db");
 
 
 function vacioANull(valor) {
-    return (valor === undefined || valor === null || valor === '') ? null : valor;
+    if (valor === undefined || valor === null) return null;
+    if (typeof valor === "string" && valor.trim() === "") return null;
+    return valor;
 }
 // Función para registrar una pareja
 // async function registrarPareja(datos) {
@@ -119,161 +121,88 @@ async function buscarTodasLasParejas() {
 
 
 
-// Función para actualizar una pareja
-// async function actualizarPareja(datos) { POSIBLE UUSO PAARA IMPLEMENTAR EL UPDATE DE MUJERES
-//     console.log("Datos recibidos para actualizar pareja:", datos);
-
-//     const sql = `
-//         UPDATE T_Participantes
-//         SET 
-//             oFoto = ?, 
-//             dNacimiento = ?, 
-//             ISexo = ?, 
-//             nTelefono = ?, 
-//             cNombre = ?, 
-//             cApellido = ?, 
-//             cEmail = ?, 
-//             cNombreM = ?, 
-//             cApellidoM = ?, 
-//             dNacimientoM = ?, 
-//             nTelefonoM = ?, 
-//             cEmailM = ?
-//         WHERE nParejaID = ?
-//     `;
-
-//     try {
-//         const result = await queryDatabase(sql, [
-//             datos.oFoto || "default.png",  // Usa un valor por defecto si está vacío
-//             datos.dNacimiento || null, // Permite valores NULL
-//             datos.ISexo || null,
-//             datos.nTelefono || null,
-//             datos.cNombre || null,
-//             datos.cApellido || null,
-//             datos.cEmail || null,
-//             datos.cNombreM || null,
-//             datos.cApellidoM || null,
-//             datos.dNacimientoM || null,
-//             datos.nTelefonoM || null,
-//             datos.cEmailM || null,
-//             datos.nParejaID,
-//         ]);
-
-//         console.log("Resultado de la actualización:", result);
-//         return { success: true, affectedRows: result.affectedRows };
-//     } catch (err) {
-//         console.error("Error en la base de datos al actualizar pareja:", err);
-//         return { success: false, error: err.message };
-//     }
-// }
-
-
-
-//Función para actualizar una pareja
-// async function actualizarPareja(datos) {
-//     console.log("Datos recibidos para actualizar pareja:", datos);
-//     const sql = `
-//         UPDATE T_Participantes 
-//         SET cNombre = ?, 
-//             nTelefono = ?, 
-//             cApellido = ?, 
-//             dNacimiento = ?, 
-//             cEmail = ?, 
-//             oFoto = ?
-//         WHERE nParejaID = ? AND ISexo = 'M'
-//     `;
-//     try {
-//         const result = await queryDatabase(sql, [
-//             datos.cNombre,
-//             datos.nTelefono,
-//             datos.cApellido,
-//             datos.dNacimiento,
-//             datos.cEmail,
-//             datos.oFoto = oFoto ?? "C:/Proyecto/uploads/default.jpg", // Usa imagen por defecto si no hay otra
-//             datos.nParejaID
-//         ]);
-//                 console.log("Ejecutando consulta SQL con:", result);
-//         return { success: true, affectedRows: result.affectedRows };
-//     } catch (err) {
-//         console.error("Error en la actualización de pareja:", err);
-//         return { success: false, error: err.message };
-//     }
-// }
-
-
-// ...existing code...
-
+// Función para actualizar una pareja completa (ambos participantes o campos específicos)
 async function actualizarParejaCompleta(datos) {
+    if (!datos || typeof datos !== "object") {
+        throw new Error("No se proporcionaron datos para actualizar.");
+    }
+
+    const nParejaID = vacioANull(datos.nParejaID);
+    if (!nParejaID) {
+        throw new Error("El ID de la pareja es obligatorio.");
+    }
+
+    // Verificar si la pareja existe
+    const existente = await queryDatabase("SELECT nParejaID FROM T_Participantes WHERE nParejaID = ?", [nParejaID]);
+    if (!existente || existente.length === 0) {
+        return 0; // Pareja no encontrada
+    }
+
+    // Normalizar y sanitizar datos para evitar valores undefined o '' que rompen MySQL
+    const cNombre = vacioANull(datos.cNombreMasculino ?? datos.cNombre);
+    const cApellido = vacioANull(datos.cApellidoMasculino ?? datos.cApellido);
+    const cEmail = vacioANull(datos.cEmailMasculino ?? datos.cEmail);
+    const nTelefono = vacioANull(datos.nTelefonoMasculino ?? datos.nTelefono);
+    const dNacimiento = vacioANull(datos.dNacimientoMasculino ?? datos.dNacimiento);
+    const oFoto = vacioANull(datos.oFotoMasculino ?? datos.oFoto);
+    const ISexo = vacioANull(datos.sexoMasculino ?? datos.ISexo);
+
+    const cNombreM = vacioANull(datos.cNombreFemenino ?? datos.cNombreM);
+    const cApellidoM = vacioANull(datos.cApellidoFemenino ?? datos.cApellidoM);
+    const cEmailM = vacioANull(datos.cEmailFemenino ?? datos.cEmailM);
+    const nTelefonoM = vacioANull(datos.nTelefonoFemenino ?? datos.nTelefonoM);
+    const dNacimientoM = vacioANull(datos.dNacimientoFemenino ?? datos.dNacimientoM);
+    const oFotoM = vacioANull(datos.oFotoFemenino ?? datos.IFotoM ?? datos.oFotoM);
+    const ISexoM = vacioANull(datos.sexoFemenino ?? datos.ISexoM);
+
+    const sql = `
+        UPDATE T_Participantes
+        SET 
+            cNombre = COALESCE(?, cNombre),
+            cApellido = COALESCE(?, cApellido),
+            cEmail = COALESCE(?, cEmail),
+            nTelefono = COALESCE(?, nTelefono),
+            dNacimiento = COALESCE(?, dNacimiento),
+            oFoto = COALESCE(?, oFoto),
+            ISexo = COALESCE(?, ISexo),
+            cNombreM = COALESCE(?, cNombreM),
+            cApellidoM = COALESCE(?, cApellidoM),
+            cEmailM = COALESCE(?, cEmailM),
+            nTelefonoM = COALESCE(?, nTelefonoM),
+            dNacimientoM = COALESCE(?, dNacimientoM),
+            IFotoM = COALESCE(?, IFotoM),
+            ISexoM = COALESCE(?, ISexoM)
+        WHERE nParejaID = ?
+    `;
+
+    const params = [
+        cNombre,
+        cApellido,
+        cEmail,
+        nTelefono,
+        dNacimiento,
+        oFoto,
+        ISexo,
+        cNombreM,
+        cApellidoM,
+        cEmailM,
+        nTelefonoM,
+        dNacimientoM,
+        oFotoM,
+        ISexoM,
+        nParejaID
+    ];
+
     try {
-        console.log("[actualizarParejaCompleta] Datos recibidos:", datos);
-
-        // Masculino
-        const sqlMasculino = `
-            UPDATE T_Participantes
-            SET cNombre = ?, cApellido = ?, cEmail = ?, nTelefono = ?, dNacimiento = ?, oFoto = COALESCE(?, oFoto)
-            WHERE nParejaID = ?
-        `;
-        console.log("[actualizarParejaCompleta] SQL Masculino:", sqlMasculino);
-        console.log("[actualizarParejaCompleta] Params Masculino:", [
-            datos.cNombreMasculino,
-            datos.cApellidoMasculino,
-            datos.cEmailMasculino,
-            datos.nTelefonoMasculino,
-            datos.dNacimientoMasculino,
-            datos.oFotoMasculino || null,
-            datos.nParejaID
-        ]);
-        const resultM = await queryDatabase(sqlMasculino, [
-            datos.cNombreMasculino,
-            datos.cApellidoMasculino,
-            datos.cEmailMasculino,
-            datos.nTelefonoMasculino,
-            datos.dNacimientoMasculino,
-            datos.oFotoMasculino || null,
-            datos.nParejaID
-        ]);
-        console.log(`Participante masculino actualizado. Filas afectadas: ${resultM.affectedRows}`);
-
-        // Femenino
-        const sqlFemenino = `
-            UPDATE T_Participantes
-            SET cNombreM = ?, cApellidoM = ?, cEmailM = ?, nTelefonoM = ?, dNacimientoM = ?, IFotoM = COALESCE(?, IFotoM)
-            WHERE nParejaID = ?
-        `;
-        console.log("[actualizarParejaCompleta] SQL Femenino:", sqlFemenino);
-        console.log("[actualizarParejaCompleta] Params Femenino:", [
-            datos.cNombreFemenino,
-            datos.cApellidoFemenino,
-            datos.cEmailFemenino,
-            datos.nTelefonoFemenino,
-            datos.dNacimientoFemenino,
-            datos.oFotoFemenino || null,
-            datos.nParejaID
-        ]);
-        const resultF = await queryDatabase(sqlFemenino, [
-            datos.cNombreFemenino,
-            datos.cApellidoFemenino,
-            datos.cEmailFemenino,
-            datos.nTelefonoFemenino,
-            datos.dNacimientoFemenino,
-            datos.oFotoFemenino || null,
-            datos.nParejaID
-        ]);
-        console.log(`Participante femenino actualizado. Filas afectadas: ${resultF.affectedRows}`);
-
-        return {
-            success: true,
-            affectedRowsMasculino: resultM.affectedRows,
-            affectedRowsFemenino: resultF.affectedRows
-        };
+        const result = await queryDatabase(sql, params);
+        // Si no hubo cambios porque los valores eran idénticos, pero la fila existe, devolver 1
+        return (result && typeof result.affectedRows === "number" && result.affectedRows > 0)
+            ? result.affectedRows
+            : 1;
     } catch (err) {
-        console.error("Error en la actualización de pareja:", err);
-        return { success: false, error: err.message };
+        throw new Error("Error al actualizar pareja: " + err.message);
     }
 }
-
-// ...existing code...
-
-
 
 // Función para eliminar una pareja por ID
 async function eliminarPareja(id) {
@@ -290,7 +219,12 @@ async function eliminarPareja(id) {
     }
 }
 
-
-
-module.exports = { registrarPareja, buscarParejaPorID, buscarParejaParaEvaluacion, buscarTodasLasParejas, eliminarPareja, actualizarParejaCompleta };
-// module.exports = { registrarPareja, buscarParejaPorID, buscarTodasLasParejas, actualizarPareja, eliminarPareja, actualizarParejaCompleta };
+module.exports = {
+    registrarPareja,
+    buscarParejaPorID,
+    buscarParejaParaEvaluacion,
+    buscarTodasLasParejas,
+    eliminarPareja,
+    actualizarParejaCompleta,
+    actualizarPareja: actualizarParejaCompleta
+};

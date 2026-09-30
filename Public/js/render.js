@@ -317,32 +317,66 @@ function inicializarModificarParejas() {
     console.log("Inicializando lógica de modificación de parejas...");
     
     const btnGuardar = document.getElementById("BTNUpdate");
-    // const btnGuardarFem = document.getElementById("BTNUpdateFemenino");
-
-    // console.log("Elemento BTNUpdateFemenino:", document.getElementById("BTNUpdateFemenino"));
-
     if (btnGuardar) {
-        console.log("Botón masculino encontrado, registrando evento...");
+        console.log("Botón Guardar encontrado, registrando evento...");
         btnGuardar.addEventListener("click", (e) => {
             e.preventDefault();
-            console.log("Evento click en BTNUpdate (Masculino)");
             modificarPareja();
         });
     } else {
         console.error("No se encontró el botón con la ID 'BTNUpdate'.");
     }
 
-    // if (btnGuardarFem) {
-    //     console.log("Botón femenino encontrado, registrando evento...");
-    //     btnGuardarFem.addEventListener("click", (e) => {
-    //         e.preventDefault(); // Evitar que el formulario recargue la página
-    //         console.log("Evento click en BTNUpdateFemenino (Femenino) DETECTADO!");
-    //         modificarPareja();
-    //     });
-    // } else {
-    //         console.error("No se encontró el botón con la ID 'BTNUpdateFemenino'.");
-    //     }
+    const inputID = document.getElementById("nParejaID");
+    if (inputID) {
+        const cargarDatosPareja = async () => {
+            const id = inputID.value.trim();
+            if (!id || isNaN(id) || parseInt(id) <= 0) return;
+            try {
+                const resp = await window.api.buscarParejaPorID(id);
+                const filas = Array.isArray(resp) ? resp : (resp?.data || []);
+                if (filas.length > 0) {
+                    const p = filas[0];
+                    const setVal = (idElem, val) => {
+                        const el = document.getElementById(idElem);
+                        if (el && val !== undefined && val !== null) el.value = val;
+                    };
+                    const formatearFecha = (fechaRaw) => {
+                        if (!fechaRaw) return "";
+                        try {
+                            const d = new Date(fechaRaw);
+                            return !isNaN(d.getTime()) ? d.toISOString().split("T")[0] : "";
+                        } catch {
+                            return "";
+                        }
+                    };
+
+                    setVal("nombreMasculino", p.cNombre);
+                    setVal("apellidoMasculino", p.cApellido);
+                    setVal("emailMasculino", p.cEmail);
+                    setVal("telefonoMasculino", p.nTelefono);
+                    setVal("fechaNacimientoMasculino", formatearFecha(p.dNacimiento));
+
+                    setVal("nombreFemenino", p.cNombreM);
+                    setVal("apellidoFemenino", p.cApellidoM);
+                    setVal("emailFemenino", p.cEmailM);
+                    setVal("telefonoFemenino", p.nTelefonoM);
+                    setVal("fechaNacimientoFemenino", formatearFecha(p.dNacimientoM));
+                }
+            } catch (err) {
+                console.error("Error al precargar datos de la pareja:", err);
+            }
+        };
+
+        inputID.addEventListener("change", cargarDatosPareja);
+        inputID.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                cargarDatosPareja();
+            }
+        });
     }
+}
 
 
 function inicializarResultados() {
@@ -608,42 +642,56 @@ async function guardarEvaluacion() {
 
 async function modificarPareja() {
     try {
-        const nParejaID = document.getElementById("nParejaID").value.trim();
+        const nParejaID = document.getElementById("nParejaID")?.value.trim();
         if (!nParejaID) {
-            alert("El ID de la pareja es obligatorio");
+            alert("El ID de la pareja es obligatorio.");
             return;
         }
 
+        const getVal = (idUpdate, idOrig) => {
+            const u = document.getElementById(idUpdate)?.value.trim();
+            if (u) return u;
+            const o = document.getElementById(idOrig)?.value.trim();
+            if (o) return o;
+            return "";
+        };
+
         // --- Guardar imagen masculina si hay nueva ---
-        let oFotoMasculino = document.getElementById("fotoMasculinoActual")?.value || null;
-        const inputFotoMasculino = document.getElementById("fotoMasculinoUpdate");
-        if (inputFotoMasculino.files.length > 0) {
+        let oFotoMasculino = null;
+        const inputFotoMasculino = (document.getElementById("fotoMasculinoUpdate")?.files?.length > 0)
+            ? document.getElementById("fotoMasculinoUpdate")
+            : document.getElementById("fotoMasculino");
+
+        if (inputFotoMasculino?.files?.length > 0) {
             const file = inputFotoMasculino.files[0];
             const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
             const rutaDestino = `uploads/${fileName}`;
             const arrayBuffer = await file.arrayBuffer();
             const resultado = await window.api.guardarImagenBuffer(arrayBuffer, rutaDestino);
-            if (resultado.success) {
+            if (resultado?.success) {
                 oFotoMasculino = rutaDestino;
             } else {
-                alert(`Error al guardar imagen masculina: ${resultado.error}`);
+                alert(`Error al guardar imagen masculina: ${resultado?.error || "Error desconocido"}`);
                 return;
             }
         }
 
         // --- Guardar imagen femenina si hay nueva ---
-        let oFotoFemenino = document.getElementById("fotoFemeninoActual")?.value || null;
-        const inputFotoFemenino = document.getElementById("fotoFemeninoUpdate");
-        if (inputFotoFemenino.files.length > 0) {
+        let oFotoFemenino = null;
+        const inputFotoFemenino = (document.getElementById("fotoFemeninoUpdate")?.files?.length > 0)
+            ? document.getElementById("fotoFemeninoUpdate")
+            : document.getElementById("fotoFemeninoAlt");
+
+        if (inputFotoFemenino?.files?.length > 0) {
             const file = inputFotoFemenino.files[0];
             const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
             const rutaDestino = `uploads/${fileName}`;
             const arrayBuffer = await file.arrayBuffer();
             const resultado = await window.api.guardarImagenBuffer(arrayBuffer, rutaDestino);
-            if (resultado.success) {
+            if (resultado?.success) {
                 oFotoFemenino = rutaDestino;
             } else {
-                alert(`Error al guardar imagen femenina: ${resultado.error}`);
+                alert(`Error al guardar imagen femenina: ${resultado?.error || "Error desconocido"}`);
                 return;
             }
         }
@@ -652,29 +700,28 @@ async function modificarPareja() {
         const datos = {
             nParejaID,
             // Masculino
-            cNombreMasculino: document.getElementById("nombreMasculinoUpdate").value.trim(),
-            cApellidoMasculino: document.getElementById("apellidoMasculinoUpdate").value.trim(),
-            cEmailMasculino: document.getElementById("emailMasculinoUpdate").value.trim(),
-            nTelefonoMasculino: document.getElementById("telefonoMasculinoUpdate").value.trim(),
-            dNacimientoMasculino: document.getElementById("fechaNacimientoMasculinoUpdate").value.trim(),
+            cNombreMasculino: getVal("nombreMasculinoUpdate", "nombreMasculino"),
+            cApellidoMasculino: getVal("apellidoMasculinoUpdate", "apellidoMasculino"),
+            cEmailMasculino: getVal("emailMasculinoUpdate", "emailMasculino"),
+            nTelefonoMasculino: getVal("telefonoMasculinoUpdate", "telefonoMasculino"),
+            dNacimientoMasculino: getVal("fechaNacimientoMasculinoUpdate", "fechaNacimientoMasculino"),
             oFotoMasculino,
             // Femenino
-            cNombreFemenino: document.getElementById("nombreFemeninoUpdate").value.trim(),
-            cApellidoFemenino: document.getElementById("apellidoFemeninoUpdate").value.trim(),
-            cEmailFemenino: document.getElementById("emailFemeninoUpdate").value.trim(),
-            nTelefonoFemenino: document.getElementById("telefonoFemeninoUpdate").value.trim(),
-            dNacimientoFemenino: document.getElementById("fechaNacimientoFemeninoUpdate").value.trim(),
+            cNombreFemenino: getVal("nombreFemeninoUpdate", "nombreFemenino"),
+            cApellidoFemenino: getVal("apellidoFemeninoUpdate", "apellidoFemenino"),
+            cEmailFemenino: getVal("emailFemeninoUpdate", "emailFemenino"),
+            nTelefonoFemenino: getVal("telefonoFemeninoUpdate", "telefonoFemenino"),
+            dNacimientoFemenino: getVal("fechaNacimientoFemeninoUpdate", "fechaNacimientoFemenino"),
             oFotoFemenino
         };
 
         console.log("Enviando solicitud de actualización con datos:", datos);
         const response = await window.api.actualizarParejaCompleta(datos);
 
-        if (response.success) {
-            alert("Pareja actualizada exitosamente.");
-            // Recargar datos si es necesario
+        if (response?.success) {
+            alert(response.message || "Pareja actualizada exitosamente.");
         } else {
-            alert("Error al actualizar pareja: " + response.error);
+            alert("Error al actualizar pareja: " + (response?.message || response?.error || "Ocurrió un error inesperado"));
         }
     } catch (err) {
         alert("Error: " + err.message);
