@@ -1,4 +1,5 @@
 import { validarDatosParejaResultados } from "./validaciones.js";
+import { iniciarOperacion } from "./avisos.js";
 
 // Vista de búsqueda: el controlador decide qué consultar y cómo responder.
 export function inicializarBusquedaEvaluacion(documento = document, api = window.api) {
@@ -30,7 +31,7 @@ export function inicializarBusquedaEvaluacion(documento = document, api = window
 
     boton.addEventListener("click", async (event) => {
         event.preventDefault();
-        if (buscando) return;
+        if (buscando || boton.disabled) return;
 
         limpiarFicha();
         const textoID = input.value.trim();
@@ -40,6 +41,11 @@ export function inicializarBusquedaEvaluacion(documento = document, api = window
             return;
         }
 
+        const liberar = iniciarOperacion(documento);
+        if (!liberar) return;
+        const pdf = documento.getElementById("btnGenerarPDFResultados");
+        const pdfDeshabilitado = pdf?.disabled;
+        if (pdf) pdf.disabled = true;
         buscando = true;
         boton.disabled = true;
         input.disabled = true;
@@ -65,6 +71,8 @@ export function inicializarBusquedaEvaluacion(documento = document, api = window
             buscando = false;
             boton.disabled = false;
             input.disabled = false;
+            if (pdf) pdf.disabled = pdfDeshabilitado;
+            liberar();
         }
     });
 }
