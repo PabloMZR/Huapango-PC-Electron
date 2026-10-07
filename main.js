@@ -4,9 +4,6 @@ const path = require("path");
 const { inicializarBaseDatos } = require("./db");
 const { obtenerSesion, cerrarSesion } = require("./Modelos/sesionModel");
 const { fileURLToPath } = require("url");
-const PDFDocument = require('pdfkit'); // Importación de libreria para creación de PDF's
-const fs = require('fs'); // Importación de una dependencia de la libreria para el sistema de archivos 
-const { type } = require("os");
 //LAS EXPORTACIONES DE LOS CONTROLADORES SON LAS MÁS IMPORTANTES DEL MOMENTO
 const { handleLogin } = require("./Controladores/authController");
 const { handleRegistrarPareja, handleBuscarParejaPorID, handleBuscarParejaParaEvaluacion, handleBuscarTodasLasParejas, handleActualizarPareja } = require("./Controladores/parejaController");
@@ -16,8 +13,6 @@ const { handleCrearUsuario, handleEliminarUsuario, handleEliminarPareja, handleO
 const { handleRegistrarEvaluacion, handleObtenerEvaluacionesPorPareja } = require("./Controladores/evaluacionesController");
 const { handleGenerarPDFParejas, handleGenerarPDFResultados, handleGenerarPDFCategorias, handleGenerarPDFEstilos, handleGenerarPDFRegistrosGenerales } = require("./Controladores/pdfController");
 const { handleGuardarConfiguracion, handleObtenerConfiguracion } = require("./Controladores/configController");
-const { handleGuardarImagenBuffer, handleGuardarImagen } = require("./Controladores/imagenesController");
-
 
 const { obtenerBorradorRegistro, guardarBorradorRegistro, limpiarBorradorRegistro } = require("./Controladores/borradorRegistroController");
 ipcMain.handle("obtener-borrador-registro", obtenerBorradorRegistro);
@@ -28,7 +23,6 @@ ipcMain.handle("obtener-borrador-modificacion", obtenerBorradorModificacion);
 ipcMain.handle("guardar-borrador-modificacion", guardarBorradorModificacion);
 ipcMain.handle("limpiar-borrador-modificacion", limpiarBorradorModificacion);
 
-// MENSAJE GENERAL ELIMINAR POR FAVOR TODO EL CÓDIGO BASURA QUE NO SE UTILIZA, IGUAL LOS COMENTARIOS SOLO DEJAR LO QUE SEA DE UTILIDAD, IGUAL CON LAS LIBRERIAS QUE NO SE USAN
 
 // Middleware de autorización IPC
 function requiereRol(rolesPermitidos, handler) {
@@ -48,10 +42,7 @@ ipcMain.handle("login", (event, credentials) => handleLogin(event, credentials, 
 ipcMain.handle("registrar-pareja", requiereRol(["admin", "user"], handleRegistrarPareja));
 ipcMain.handle("buscar-pareja-por-id", handleBuscarParejaPorID);
 ipcMain.handle("buscar-pareja-para-evaluacion", handleBuscarParejaParaEvaluacion);
-// ipcMain.handle("actualizar-pareja", handleActualizarPareja);
-//     console.log("Enviando solicitud de actualización con datos DESDE MAIN.JS:", datos);
-//     return handleActualizarPareja(event, datos);
-// });
+
 ipcMain.handle("actualizar-pareja-completa", requiereRol(["admin", "user"], handleActualizarPareja));
 ipcMain.handle("buscar-todas-las-parejas", handleBuscarTodasLasParejas);
 ipcMain.handle("registrar-categoria", requiereRol(["admin"], handleRegistrarCategoria));
@@ -101,10 +92,6 @@ ipcMain.handle("continuar-configuracion", desdeConfiguracion(async (event) => {
     }
 }));
 
-// Conectar el evento IPC para abrir la ventana de configuración
-ipcMain.on("abrir-ventana-emergente", () => { abrirConfiguracion(); });
-ipcMain.handle("guardarImagenBuffer", handleGuardarImagenBuffer);
-ipcMain.handle("guardarImagen", handleGuardarImagen);
 function createLoginWindow() {
     global.loginWindow = new BrowserWindow({
         width: 1400,
@@ -117,7 +104,6 @@ function createLoginWindow() {
         },
     });
     return global.loginWindow.loadFile(path.join(__dirname, "Vistas", "login.html"));
-
 }
 
 function createMainWindow() {
@@ -228,32 +214,7 @@ const templateMenu = [
     {
         label: "Archivo",
         submenu: [
-            // {
-            //     label: "Nuevo Registro",
-            //     accelerator: "Ctrl+N",
-            //     click() {
-            //         console.log("Nuevo registro seleccionado");
-            //         openNewWindow("Sections/Registros.html");
-            //     },
-            // },
-            // {
-            //     label: "Abrir",
-            //     accelerator: "Ctrl+O",
-            //     click() {
-            //         console.log("Abrir archivo seleccionado");
-            //         // Aquí puedes implementar una función para abrir archivos
-            //     },
-            // },
-            // {
-            //     label: "Generar PDF de parejas",
-            //     accelerator: "Ctrl+P",
-            //     click() {
-            //         const ventana = BrowserWindow.getFocusedWindow();
-            //         if (ventana) {
-            //             ventana.webContents.send("generar-pdf"); // Envía el evento al render
-            //         }
-            //     },
-            // },
+
             { type: "separator" },
             {
                 label: "Salir",
@@ -264,19 +225,7 @@ const templateMenu = [
             },
         ],
     },
-    // {
-    //     label: "Editar",
-    //     submenu: [
-    //         {
-    //             label: "Modificar Pareja",
-    //             accelerator: "Ctrl+M",
-    //             click() {
-    //                 console.log("Modificar pareja seleccionado");
-    //                 openNewWindow("Sections/ModificarParejas.html");
-    //             },
-    //         },
-    //     ],
-    // },
+
     {
         label: "Ver",
         submenu: [
