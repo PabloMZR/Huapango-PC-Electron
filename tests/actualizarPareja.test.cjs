@@ -22,109 +22,127 @@ function loadCommonJS(relativePath, mocks = {}) {
     return module.exports;
 }
 
-function backend(queryDatabase) {
-    const model = loadCommonJS("Modelos/parejaModel.js", { "../db": { queryDatabase } });
-    const controller = loadCommonJS("Controladores/parejaController.js", { "../Modelos/parejaModel": model });
+function backend(consultar) {
+    const mockDb = {
+        queryDatabase: async (sql, params) => consultar(sql, params),
+        withTransaction: async (tablas, fn) => fn(consultar)
+    };
+    const mockImagenes = {
+        conFotos: async (datos, fn) => fn(datos),
+        limpiarFotos: async () => { }
+    };
+    const model = loadCommonJS("Modelos/parejaModel.js", {
+        "../db": mockDb,
+        "./imagenesModel": mockImagenes
+    });
+    const controller = loadCommonJS("Controladores/parejaController.js", {
+        "../Modelos/parejaModel": model
+    });
     return { model, controller };
 }
 
-test("actualizarPareja rechaza invocaciones sin datos o sin ID", async () => {
+const datosParejaValidos = {
+    nParejaID: 10,
+    cNombreMasculino: "Carlos",
+    cApellidoMasculino: "Santana",
+    cEmailMasculino: "carlos@test.com",
+    nTelefonoMasculino: "4421234567",
+    dNacimientoMasculino: "1995-04-12",
+    oFotoMasculino: null,
+    cNombreFemenino: "Maria",
+    cApellidoFemenino: "Lopez",
+    cEmailFemenino: "maria@test.com",
+    nTelefonoFemenino: "4427654321",
+    dNacimientoFemenino: "1996-05-15",
+    oFotoFemenino: null
+};
+
+test("actualizarPareja rechaza invocaciones sin ID o con ID inválido", async () => {
     const { model, controller } = backend(async () => assert.fail("No debe consultar SQL"));
-    
-    await assert.rejects(async () => model.actualizarParejaCompleta(null), /No se proporcionaron datos/);
-    await assert.rejects(async () => model.actualizarParejaCompleta({}), /ID de la pareja es obligatorio/);
-    await assert.rejects(async () => model.actualizarParejaCompleta({ nParejaID: "   " }), /ID de la pareja es obligatorio/);
+
+    await assert.rejects(async () => model.actualizarParejaCompleta(null), { code: "INVALID_ID" });
+    await assert.rejects(async () => model.actualizarParejaCompleta({}), { code: "INVALID_ID" });
+    await assert.rejects(async () => model.actualizarParejaCompleta({ nParejaID: "   " }), { code: "INVALID_ID" });
+    await assert.rejects(async () => model.actualizarParejaCompleta({ nParejaID: -5 }), { code: "INVALID_ID" });
 
     const resControlador = await controller.handleActualizarPareja(null, {});
     assert.equal(resControlador.success, false);
-    assert.match(resControlador.message, /ID de la pareja es obligatorio/);
+    assert.equal(resControlador.code, "INVALID_ID");
+    assert.match(resControlador.error, /Ingresa un ID de pareja entero y positivo/);
 });
 
 test("actualizarPareja devuelve no encontrada si la pareja no existe en la base de datos", async () => {
     const { model, controller } = backend(async (sql, params) => {
-        assert.match(sql, /SELECT nParejaID FROM T_Participantes/i);
+        assert.match(sql, /SELECT nParejaID/i);
         return []; // No encontrada
     });
 
-    const resultadoModel = await model.actualizarParejaCompleta({ nParejaID: 999 });
-    assert.equal(resultadoModel, 0);
+    const datosInexistente = { ...datosParejaValidos, nParejaID: 999 };
 
-    const resultadoCtrl = await controller.handleActualizarPareja(null, { nParejaID: 999 });
+    const resultadoModel = await model.actualizarParejaCompleta(datosInexistente);
+    assert.equal(resultadoModel.success, false);
+    assert.equal(resultadoModel.code, "NOT_FOUND");
+    assert.equal(resultadoModel.affectedRows, 0);
+
+    const resultadoCtrl = await controller.handleActualizarPareja(null, datosInexistente);
     assert.equal(resultadoCtrl.success, false);
-    assert.match(resultadoCtrl.message, /No se encontró ninguna pareja/);
+    assert.equal(resultadoCtrl.code, "NOT_FOUND");
+    assert.match(resultadoCtrl.error, /No se encontró ninguna pareja con ese ID para actualizar/);
 });
 
-test("actualizarPareja sanitiza campos vacíos a null y ejecuta un UPDATE con COALESCE", async () => {
+test("actualizarPareja rechaza datos incompletos y actualiza correctamente con datos válidos", async () => {
     const queries = [];
     const { model, controller } = backend(async (sql, params) => {
         queries.push({ sql, params });
         if (/SELECT/i.test(sql)) {
-            return [{ nParejaID: 10 }];
+            return [{ nParejaID: 10, oFoto: null, IFotoM: null }];
         }
-        return { affectedRows: 1 };
+        return { affectedRows: 1, changedRows: 1 };
     });
 
-    const datos = {
-        nParejaID: 10,
-        cNombreMasculino: "Carlos",
-        cApellidoMasculino: "Santana",
-        cEmailMasculino: "carlos@test.com",
-        nTelefonoMasculino: "4421234567",
-        dNacimientoMasculino: "1995-04-12",
-        oFotoMasculino: null,
-        // Participante femenino con campos vacíos o undefined
+    // Rechaza campos vacíos antes de ejecutar SQL
+    const datosIncompletos = {
+        ...datosParejaValidos,
         cNombreFemenino: "   ",
-        cApellidoFemenino: "",
-        cEmailFemenino: undefined,
-        nTelefonoFemenino: "",
-        dNacimientoFemenino: ""
+        cApellidoFemenino: ""
     };
 
-    const res = await controller.handleActualizarPareja(null, datos);
+    await assert.rejects(
+        async () => model.actualizarParejaCompleta(datosIncompletos),
+        { code: "INVALID_DATA" }
+    );
+    const resInvalido = await controller.handleActualizarPareja(null, datosIncompletos);
+    assert.equal(resInvalido.success, false);
+    assert.equal(resInvalido.code, "INVALID_DATA");
+
+    // Ejecuta correctamente cuando ambos participantes están completos
+    const res = await controller.handleActualizarPareja(null, datosParejaValidos);
     assert.equal(res.success, true);
+    assert.equal(res.code, "UPDATED");
     assert.match(res.message, /actualizada exitosamente/);
 
     assert.equal(queries.length, 2);
     const updateQuery = queries[1];
     assert.match(updateQuery.sql, /UPDATE T_Participantes/);
-    assert.match(updateQuery.sql, /cNombre = COALESCE\(\?, cNombre\)/);
-    assert.match(updateQuery.sql, /dNacimiento = COALESCE\(\?, dNacimiento\)/);
     assert.match(updateQuery.sql, /WHERE nParejaID = \?/);
-
-    // Verificar que NINGÚN parámetro sea undefined ni string vacío ""
-    assert.equal(updateQuery.params.includes(undefined), false);
-    assert.equal(updateQuery.params.includes(""), false);
-    assert.equal(updateQuery.params.includes("   "), false);
-
-    // Campos masculinos enviados
-    assert.equal(updateQuery.params[0], "Carlos");
-    assert.equal(updateQuery.params[1], "Santana");
-    assert.equal(updateQuery.params[2], "carlos@test.com");
-    assert.equal(updateQuery.params[3], "4421234567");
-    assert.equal(updateQuery.params[4], "1995-04-12");
-
-    // Campos femeninos vacíos normalizados a null para no sobrescribir ni dar error en fecha MySQL
-    assert.equal(updateQuery.params[7], null); // cNombreM
-    assert.equal(updateQuery.params[8], null); // cApellidoM
-    assert.equal(updateQuery.params[9], null); // cEmailM
-    assert.equal(updateQuery.params[10], null); // nTelefonoM
-    assert.equal(updateQuery.params[11], null); // dNacimientoM
-    assert.equal(updateQuery.params[14], 10); // WHERE nParejaID
+    assert.equal(updateQuery.params[12], 10); // ID en WHERE
 });
 
 test("actualizarPareja propaga errores de base de datos adecuadamente", async () => {
     const { model, controller } = backend(async (sql) => {
-        if (/SELECT/i.test(sql)) return [{ nParejaID: 10 }];
-        throw new Error("Conexión perdida con MySQL");
+        if (/SELECT/i.test(sql)) return [{ nParejaID: 10, oFoto: null, IFotoM: null }];
+        const err = new Error("Conexión perdida con MySQL");
+        err.code = "ECONNRESET";
+        throw err;
     });
 
     await assert.rejects(
-        async () => model.actualizarParejaCompleta({ nParejaID: 10, cNombreMasculino: "Test" }),
-        /Error al actualizar pareja: Conexión perdida con MySQL/
+        async () => model.actualizarParejaCompleta(datosParejaValidos),
+        /Conexión perdida con MySQL/
     );
 
-    const res = await controller.handleActualizarPareja(null, { nParejaID: 10, cNombreMasculino: "Test" });
+    const res = await controller.handleActualizarPareja(null, datosParejaValidos);
     assert.equal(res.success, false);
+    assert.equal(res.code, "ECONNRESET");
     assert.match(res.error, /Conexión perdida con MySQL/);
-    assert.match(res.message, /Conexión perdida con MySQL/);
 });
