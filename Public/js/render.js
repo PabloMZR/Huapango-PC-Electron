@@ -1,3 +1,5 @@
+import { leerFoto } from "./fotos.js";
+import { inicializarBorradorModificacion } from "./borradorModificacion.js";
 import { validarDatosPareja, validarDatosCategoria, validarDatosModificarPareja, validarEvaluacion } from "./validaciones.js";
 import { validarIDPareja, validarDatosEstilo, validarIDCategoria, validarIDEstilo, validarDatosUsuario, validarDatosEliminarUsuario } from "./validaciones.js";
 import { inicializarBusquedaEvaluacion } from "./busquedaEvaluacion.js";
@@ -254,7 +256,7 @@ async function registrarEstilo() {
 
 
 function inicializarModificarParejas() {
-    document.getElementById("BTNUpdate")?.addEventListener("click", modificarPareja);
+    return inicializarBorradorModificacion(modificarPareja);
 }
 
 
@@ -439,40 +441,6 @@ async function modificarPareja() {
                 return;
             }
 
-            // --- Guardar imagen masculina si hay nueva ---
-            let oFotoMasculino = document.getElementById("fotoMasculinoActual")?.value || null;
-            const inputFotoMasculino = document.getElementById("fotoMasculinoUpdate");
-            if (inputFotoMasculino.files.length > 0) {
-                const file = inputFotoMasculino.files[0];
-                const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
-                const rutaDestino = `uploads/${fileName}`;
-                const arrayBuffer = await file.arrayBuffer();
-                const resultado = await window.api.guardarImagenBuffer(arrayBuffer, rutaDestino);
-                if (resultado.success) {
-                    oFotoMasculino = rutaDestino;
-                } else {
-                    mostrarAviso(`Error al guardar imagen masculina: ${resultado.error}`);
-                    return;
-                }
-            }
-
-            // --- Guardar imagen femenina si hay nueva ---
-            let oFotoFemenino = document.getElementById("fotoFemeninoActual")?.value || null;
-            const inputFotoFemenino = document.getElementById("fotoFemeninoUpdate");
-            if (inputFotoFemenino.files.length > 0) {
-                const file = inputFotoFemenino.files[0];
-                const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
-                const rutaDestino = `uploads/${fileName}`;
-                const arrayBuffer = await file.arrayBuffer();
-                const resultado = await window.api.guardarImagenBuffer(arrayBuffer, rutaDestino);
-                if (resultado.success) {
-                    oFotoFemenino = rutaDestino;
-                } else {
-                    mostrarAviso(`Error al guardar imagen femenina: ${resultado.error}`);
-                    return;
-                }
-            }
-
             // --- Preparar datos para el update ---
             const datos = {
                 nParejaID,
@@ -482,25 +450,28 @@ async function modificarPareja() {
                 cEmailMasculino: document.getElementById("emailMasculinoUpdate").value.trim(),
                 nTelefonoMasculino: document.getElementById("telefonoMasculinoUpdate").value.trim(),
                 dNacimientoMasculino: document.getElementById("fechaNacimientoMasculinoUpdate").value.trim(),
-                oFotoMasculino,
                 // Femenino
                 cNombreFemenino: document.getElementById("nombreFemeninoUpdate").value.trim(),
                 cApellidoFemenino: document.getElementById("apellidoFemeninoUpdate").value.trim(),
                 cEmailFemenino: document.getElementById("emailFemeninoUpdate").value.trim(),
                 nTelefonoFemenino: document.getElementById("telefonoFemeninoUpdate").value.trim(),
                 dNacimientoFemenino: document.getElementById("fechaNacimientoFemeninoUpdate").value.trim(),
-                oFotoFemenino
             };
 
-            console.log("Enviando solicitud de actualización con datos:", datos);
+            datos.fotos = {};
+            for (const lado of ["Masculino", "Femenino"]) {
+                const archivo = document.getElementById(`foto${lado}Update`)?.files[0];
+                if (archivo) datos.fotos[lado] = await leerFoto(archivo);
+            }
             const response = await window.api.actualizarParejaCompleta(datos);
 
             if (response.success) {
-                mostrarAviso("Pareja actualizada exitosamente.");
-                // Recargar datos si es necesario
+                for (const lado of ["Masculino", "Femenino"]) document.getElementById(`foto${lado}Update`).value = "";
+                mostrarAviso(response.message || "Pareja actualizada exitosamente.");
             } else {
-                mostrarAviso("Error al actualizar pareja: " + response.error);
+                mostrarAviso("Error al actualizar pareja: " + (response.error || response.message || "No se pudo guardar la pareja."));
             }
+            return response;
         } catch (err) {
             mostrarAviso("Error: " + err.message);
         }
@@ -629,11 +600,6 @@ async function eliminarUsuario() {
 
             const cNombreUsuario = document.getElementById("usuarioEliminar")?.value.trim();
             console.log(` Valor ingresado: '${cNombreUsuario}'`);
-
-            if (!cNombreUsuario || cNombreUsuario.length < 3) {
-                mostrarAviso("Debes ingresar un nombre de usuario válido (mínimo 3 caracteres).");
-                return;
-            }
 
             validarDatosEliminarUsuario({ cNombreUsuario });
 
