@@ -1,9 +1,14 @@
 // Importaciones y dependencias
-const { app, BrowserWindow, ipcMain, Menu, dialog, shell, contextBridge } = require("electron");
+const { app, BrowserWindow, ipcMain, Menu, dialog, shell, contextBridge, protocol, net } = require("electron");
 const path = require("path");
-const { inicializarBaseDatos } = require("./db");
+const url = require("url");
+const { fileURLToPath } = url;
+const { inicializarBaseDatos, queryDatabase } = require("./db");
 const { obtenerSesion, cerrarSesion } = require("./Modelos/sesionModel");
-const { fileURLToPath } = require("url");
+
+protocol?.registerSchemesAsPrivileged?.([
+    { scheme: "app", privileges: { standard: true, secure: true, supportFetchAPI: true } }
+]);
 const PDFDocument = require('pdfkit'); // Importación de libreria para creación de PDF's
 const fs = require('fs'); // Importación de una dependencia de la libreria para el sistema de archivos 
 const { type } = require("os");
@@ -24,6 +29,83 @@ const { obtenerBorradorRegistro, guardarBorradorRegistro, limpiarBorradorRegistr
 ipcMain.handle("obtener-borrador-registro", obtenerBorradorRegistro);
 ipcMain.handle("guardar-borrador-registro", guardarBorradorRegistro);
 ipcMain.handle("limpiar-borrador-registro", limpiarBorradorRegistro);
+
+// ==========================================
+// CONTROLADORES MODULARES PARA MULTI-EVENTO
+// ==========================================
+const { guardarEventoCompleto, obtenerEventos, obtenerEventoDetalle } = require("./Modelos/eventoModularModel");
+const { 
+    generarSiguienteFolio,
+    registrarParticipanteModular, 
+    actualizarParticipanteModular,
+    buscarParticipantePorIDoFolio,
+    obtenerParticipantesPorCategoria,
+    obtenerTodosLosParticipantes,
+    eliminarParticipanteModular 
+} = require("./Modelos/participanteModularModel");
+const { guardarEvaluacionDinamica, obtenerResultadosCategoria } = require("./Modelos/evaluacionModularModel");
+
+ipcMain.handle("guardar-evento-completo", async (event, payload) => {
+    return await guardarEventoCompleto(payload);
+});
+ipcMain.handle("obtener-eventos", async () => {
+    return await obtenerEventos();
+});
+ipcMain.handle("obtener-evento-detalle", async (event, nEventoID) => {
+    return await obtenerEventoDetalle(nEventoID);
+});
+ipcMain.handle("registrar-participante-modular", async (event, datos) => {
+    return await registrarParticipanteModular(datos);
+});
+ipcMain.handle("actualizar-participante-modular", async (event, nParticipanteID, datos) => {
+    return await actualizarParticipanteModular(nParticipanteID, datos);
+});
+ipcMain.handle("eliminar-participante-modular", async (event, nParticipanteID) => {
+    return await eliminarParticipanteModular(nParticipanteID);
+});
+ipcMain.handle("buscar-participante-por-id-o-folio", async (event, termino) => {
+    return await buscarParticipantePorIDoFolio(termino);
+});
+ipcMain.handle("obtener-participantes-por-categoria", async (event, nCategoriaID) => {
+    return await obtenerParticipantesPorCategoria(nCategoriaID);
+});
+ipcMain.handle("obtener-todos-los-participantes", async () => {
+    return await obtenerTodosLosParticipantes();
+});
+ipcMain.handle("generar-siguiente-folio", async (event, nCategoriaID) => {
+    return await generarSiguienteFolio(nCategoriaID);
+});
+ipcMain.handle("guardar-evaluacion-dinamica", async (event, datos) => {
+    return await guardarEvaluacionDinamica(datos);
+});
+ipcMain.handle("obtener-resultados-categoria", async (event, nCategoriaID) => {
+    return await obtenerResultadosCategoria(nCategoriaID);
+});
+ipcMain.handle("obtener-usuarios", async () => {
+    try {
+        return await queryDatabase("SELECT nUsuarioID, cNombreUsuario, rol, dFechaCreacion FROM t_usuarios ORDER BY nUsuarioID ASC");
+    } catch {
+        return [];
+    }
+});
+ipcMain.handle("cerrar-sesion-actual", async (event) => {
+    try {
+        cerrarSesion();
+        global.userRole = "guest";
+        if (!global.loginWindow || global.loginWindow.isDestroyed()) {
+            await createLoginWindow();
+        } else {
+            global.loginWindow.focus();
+        }
+        const senderWin = BrowserWindow.fromWebContents(event.sender);
+        if (senderWin && senderWin !== global.loginWindow) {
+            senderWin.close();
+        }
+        return { success: true };
+    } catch (e) {
+        return { success: false, error: e.message };
+    }
+});
 
 // MENSAJE GENERAL ELIMINAR POR FAVOR TODO EL CÓDIGO BASURA QUE NO SE UTILIZA, IGUAL LOS COMENTARIOS SOLO DEJAR LO QUE SEA DE UTILIDAD, IGUAL CON LAS LIBRERIAS QUE NO SE USAN
 
@@ -112,8 +194,11 @@ function createLoginWindow() {
 
 function createMainWindow() {
     global.mainWindow = new BrowserWindow({
-        width: 800,
-        height: 600,
+        width: 1400,
+        height: 900,
+        minWidth: 1024,
+        minHeight: 700,
+        backgroundColor: "#090d14",
         webPreferences: {
             preload: path.join(__dirname, "preload.js"),
             nodeIntegration: false,
@@ -123,9 +208,7 @@ function createMainWindow() {
     });
 
     global.mainWindow.maximize();
-    // global.mainWindow.loadFile("Vistas/index.html");
-        global.mainWindow.loadFile("Vistas/MenuPrincipal.html");
-
+    global.mainWindow.loadURL("app://localhost/index.html");
 
     // Asegúrate de que este evento se registre después de que la ventana haya sido creada
     global.mainWindow.webContents.once("did-finish-load", () => {
@@ -396,6 +479,17 @@ function abrirConfiguracion(motivo = "") {
 }
 
 app.whenReady().then(async () => {
+    // Manejador del protocolo para cargar la UI moderna de Next.js compilada
+    protocol?.handle?.("app", (request) => {
+        const requestUrl = new URL(request.url);
+        let pathname = decodeURIComponent(requestUrl.pathname);
+        let filePath = path.join(__dirname, "ui", "out", pathname);
+        if (pathname === "/" || !path.extname(filePath)) {
+            filePath = path.join(__dirname, "ui", "out", "index.html");
+        }
+        return net.fetch(url.pathToFileURL(filePath).toString());
+    });
+
     Menu.setApplicationMenu(Menu.buildFromTemplate(templateMenu));
     try {
         await inicializarBaseDatos();
@@ -406,6 +500,31 @@ app.whenReady().then(async () => {
 }).catch(() => {
     dialog.showErrorBox("Error de inicio", "No se pudo iniciar la aplicación.");
     app.quit();
+});
+
+function createModularWindow() {
+    if (global.modularWindow && !global.modularWindow.isDestroyed()) {
+        global.modularWindow.focus();
+        return;
+    }
+    global.modularWindow = new BrowserWindow({
+        width: 1400,
+        height: 900,
+        minWidth: 1024,
+        minHeight: 700,
+        backgroundColor: "#090d14",
+        webPreferences: {
+            preload: path.join(__dirname, "preload.js"),
+            nodeIntegration: false,
+            contextIsolation: true,
+            spellcheck: false,
+        },
+    });
+    global.modularWindow.loadURL("app://localhost/index.html");
+}
+
+ipcMain.on("abrir-modulo-universal", () => {
+    createModularWindow();
 });
 
 app.on("window-all-closed", () => { app.quit(); });

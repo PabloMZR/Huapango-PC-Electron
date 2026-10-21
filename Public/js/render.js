@@ -61,7 +61,14 @@ document.addEventListener("DOMContentLoaded", () => {
     //     window.location.href = "../Vistas/MenuPrincipal.html";
     // });
 
-        document.getElementById("btnIndex")?.addEventListener("click", () => {
+    document.getElementById("btnModuloUniversal")?.addEventListener("click", () => {
+        window.api?.abrirModuloUniversal?.();
+    });
+    document.getElementById("btnCardModuloUniversal")?.addEventListener("click", () => {
+        window.api?.abrirModuloUniversal?.();
+    });
+
+    document.getElementById("btnIndex")?.addEventListener("click", () => {
         window.location.href = "../Vistas/MenuPrincipal.html";
     });
     document.getElementById("btnRegistros")?.addEventListener("click", () => {

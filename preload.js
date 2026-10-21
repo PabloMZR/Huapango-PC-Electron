@@ -54,6 +54,23 @@ contextBridge.exposeInMainWorld("api", {
     guardarImagenBuffer: (buffer, destino) => ipcRenderer.invoke("guardarImagenBuffer", buffer, destino),
 
 
+    // Métodos Modulares Dinámicos
+    abrirModuloUniversal: () => ipcRenderer.send("abrir-modulo-universal"),
+    guardarEventoCompleto: (payload) => ipcRenderer.invoke("guardar-evento-completo", payload),
+    obtenerEventos: () => ipcRenderer.invoke("obtener-eventos"),
+    obtenerEventoDetalle: (nEventoID) => ipcRenderer.invoke("obtener-evento-detalle", nEventoID),
+    registrarParticipanteModular: (datos) => ipcRenderer.invoke("registrar-participante-modular", datos),
+    actualizarParticipanteModular: (nParticipanteID, datos) => ipcRenderer.invoke("actualizar-participante-modular", nParticipanteID, datos),
+    eliminarParticipanteModular: (nParticipanteID) => ipcRenderer.invoke("eliminar-participante-modular", nParticipanteID),
+    buscarParticipantePorIDoFolio: (termino) => ipcRenderer.invoke("buscar-participante-por-id-o-folio", termino),
+    obtenerParticipantesPorCategoria: (nCategoriaID) => ipcRenderer.invoke("obtener-participantes-por-categoria", nCategoriaID),
+    obtenerTodosLosParticipantes: () => ipcRenderer.invoke("obtener-todos-los-participantes"),
+    generarSiguienteFolio: (nCategoriaID) => ipcRenderer.invoke("generar-siguiente-folio", nCategoriaID),
+    guardarEvaluacionDinamica: (datos) => ipcRenderer.invoke("guardar-evaluacion-dinamica", datos),
+    obtenerResultadosCategoria: (nCategoriaID) => ipcRenderer.invoke("obtener-resultados-categoria", nCategoriaID),
+    obtenerUsuarios: () => ipcRenderer.invoke("obtener-usuarios"),
+    cerrarSesionActual: () => ipcRenderer.invoke("cerrar-sesion-actual"),
+
     abrirVentanaEmergente: () => ipcRenderer.send("abrir-ventana-emergente"), // POIBLEMENTE ESTO TENGAMOSS QUE BORRARLO SOLO ES PARA PRUEBAS
     getUsuarioID: () => ipcRenderer.invoke("get-usuario-id"),
     send: (channel, data) => {

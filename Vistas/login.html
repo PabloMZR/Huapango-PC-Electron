@@ -3,61 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:;"> DA ERROR-->
-    <title>Inicio de Sesión</title>
+    <title>Inicio de Sesión · Módulo Universal</title>
     <script type="module" src="../Public/js/login.js"></script>
     <link rel="stylesheet" href="../Public/css/stylesLogin.css">
-    
-    <link rel="stylesheet" href="../Public/css/modern-ui.css">
 </head>
 <body>
-    <div class="login-container">
-        <h1 class="login-title">Inicio de Sesión</h1>
-        
-        <div class="logos">
-            <img src="../Public/images/logo_municipio.png" alt="San Joaquín Pueblo Mágico" class="logo-left" style="max-width: 200px;">
-            <img src="../Public/images/logo-huapango.png" alt="XLIX Concurso Nacional de Baile de Huapango" class="logo-right" style="max-width: 200px;">
-        </div>
-        
-        <div class="login-form-container">
-            <div class="user-icon-container">
-                <div class="user-icon">👤</div>
+    <div class="login-wrapper">
+        <div class="glow-orb"></div>
+        <div class="login-container">
+            <div class="header-badge">
+                <span class="badge-dot"></span>
+                <span class="badge-text">MÓDULO UNIVERSAL · PRO</span>
+            </div>
+
+            <div class="brand-header">
+                <div class="brand-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+                        <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+                        <path d="M4 22h16"/>
+                        <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+                        <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+                        <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+                    </svg>
+                </div>
+                <h1 class="login-title">Control de Competencias</h1>
+                <p class="login-subtitle">Gestión unificada de eventos, participantes y jueceo en vivo</p>
             </div>
             
-            <form>
-                <div class="form-group">
-                    <div class="input-icon user-input">
-                        <input type="text" class="form-control" placeholder="USUARIO" id="username">
+            <div class="login-form-container">
+                <form id="form">
+                    <div class="form-group">
+                        <label class="form-label" for="username">Usuario</label>
+                        <div class="input-wrapper">
+                            <span class="field-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="12" cy="7" r="4"/>
+                                </svg>
+                            </span>
+                            <input type="text" class="form-control" placeholder="Ej: admin o juez1" id="username" autocomplete="username">
+                        </div>
                     </div>
-                </div>
-                
-                <div class="form-group">
-                    <div class="input-icon password-input">
-                        <input type="password" class="form-control" placeholder="CONTRASEÑA" id="password">
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="password">Contraseña</label>
+                        <div class="input-wrapper">
+                            <span class="field-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                </svg>
+                            </span>
+                            <input type="password" class="form-control" placeholder="••••••••" id="password" autocomplete="current-password">
+                        </div>
                     </div>
-                </div>
-                
-                <div class="checkbox-group">
-                    <input type="checkbox" id="show-password">      <!-- ESTO DEBERIA FUNCIONAR NO TENGO IDEA DE PORQUE NO JALA -->
-                    <label for="show-password">Ver contraseña</label> 
-                </div>
-                                    <!-- Pequeño scrpit para que jale el ver contraseña-->
-                <script> 
-                    document.addEventListener('DOMContentLoaded', () => {
-                    const checkbox = document.getElementById('show-password');
-                    const passwordInput = document.getElementById('password');
+                    
+                    <div class="checkbox-group">
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="show-password">
+                            <span class="checkmark"></span>
+                            <span class="checkbox-label">Ver contraseña</span>
+                        </label>
+                    </div>
 
-                    checkbox.addEventListener('change', () => {
-                        passwordInput.type = checkbox.checked ? 'text' : 'password';
-                    });
-                    });
-                </script>
-                <button type="submit" class="login-button" id="loginBtn">Ingresar</button>
-                <p id="errorMsg"></p>
-            </form>
+                    <script> 
+                        document.addEventListener('DOMContentLoaded', () => {
+                            const checkbox = document.getElementById('show-password');
+                            const passwordInput = document.getElementById('password');
+                            if (checkbox && passwordInput) {
+                                checkbox.addEventListener('change', () => {
+                                    passwordInput.type = checkbox.checked ? 'text' : 'password';
+                                });
+                            }
+                        });
+                    </script>
+
+                    <button type="submit" class="login-button" id="loginBtn">
+                        <span>Iniciar Sesión</span>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 12h14"/>
+                            <path d="m12 5 7 7-7 7"/>
+                        </svg>
+                    </button>
+
+                    <p id="errorMsg"></p>
+
+                    <div class="login-footer-info">
+                        <div class="quick-credentials">
+                            <span>Admin: <strong>admin</strong> (12345)</span>
+                            <span>·</span>
+                            <span>Juez: <strong>juez1</strong> (12345)</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-    
-
 </body>
 </html>
