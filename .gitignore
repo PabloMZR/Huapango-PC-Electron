@@ -4,6 +4,8 @@ node_modules/
 # Builds/Distribución
 dist/
 out/
+!ui/out/
+!ui/out/**
 build/
 release/
 *.asar
